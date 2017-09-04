@@ -1,0 +1,20 @@
+clear all
+close all
+
+
+bd=100*100;
+Bdd=40*100*100/2;
+Bias=1e-4;
+
+x=-1/100:1/10000:1/100;
+y=-1/100:1/10000:1/100;
+z=-1/100:1/10000:1/100;
+
+Bx0=0;
+By0=0;
+Bz0=1
+    
+Bx=Bx0+Bd*x-Bdd*x.*z;
+By=By0-Bd*y-Bdd*y.*z;
+Bz=Bz0+Bdd*(z.^2-(x.^2+y.^2)/2)
+B=Bo+Bdash+Bddash;

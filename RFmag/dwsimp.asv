@@ -1,0 +1,30 @@
+clear all
+close all
+
+GtoT=1e-4;
+Brf=1.1*GtoT;
+G=500*100*GtoT;
+wrf=2*pi*1.2e6;
+B1=1*GtoT;
+
+x =0:.1e-6:50e-6;
+y =0:.1e-6:50e-6;
+rho=sqrt(x.^2+y.^2);
+phi=atan(y./x);
+Bsx=G*x*GtoT;
+Bsy=G*y*GtoT;
+Bm =sqrt(Bsx.^2+Bsy.^2+B1^2);
+gf=1;
+mf=2;
+mub=9.274e-24;
+hbar=1.054e-34;
+kb=1.38e-23;
+kap =gf*mub;
+
+delta=(kap*B1/hbar)-wrf;
+Bc=2*sqrt(B1*hbar*delta/abs(kap))
+rho0=1/(sqrt(2)*G)*sqrt(Brf^2-Bc^2)
+d=delta/(2*pi)
+Vdw=mf*kap*sqrt((Bm-(hbar*wrf/abs(kap))).^2+((Brf./(2*Bm)).^2.*(B1^2+(G^2*rho.^2.*sin(phi).^2))))/kb;
+
+plot(x,Vdw)
