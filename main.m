@@ -5,12 +5,21 @@
 % physical constants
 mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]
 
+% TODO:
+% [] reverse transform mesghrid [xx,yy,zz] in trap coord to evaluate 
+%   similarly ordered (TT,RR,ZZ) vectors for each unique coil
+% [] evaluate B from each coil in trap coord
+% [] sum B - total B field
+% [] characterise potential
+%   [] isosurfaces on B_tot
+
 %% Scenario 1: a single coil
 % config
 R=10e-3;    % coil radius [m]
 I=1;        % coil current [A]
-pos=[0,0,-10e-3];      % coil centre position (x,y,z)
 ori=[0,0,0];           % coil orientation - Euler angles
+pos=[0,0,-10e-3];      % coil centre position (x,y,z)
+
 
 % region to evaluate
 nzz=20;
@@ -73,6 +82,7 @@ ylabel('Y');
 zlabel('Z');
 
 % Babs contours (potential landscape)
+
 
 %% functions
 % useful rotator for meshgrid
