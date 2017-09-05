@@ -28,7 +28,7 @@ XYZ0=cell(3,1);
 R_coil=10e-3;    % coil radius [m]
 I_coil=1;        % coil current [A]
 ori_coil=[0,0,0];           % coil orientation - Euler angles
-pos_coil=[0,0,0];      % coil centre position (x,y,z)
+pos_coil=[0,0,0];           % coil centre position (x,y,z)
 
 %%% evaluate the grid region in coil centered frame
 % coord translation
@@ -36,43 +36,25 @@ XYZ0_coil=cell(3,1);
 for ii=1:3
     XYZ0_coil{ii}=XYZ0{ii}+pos_coil(ii);     
 end
-% cartesian to cylindrical
-TRZ0_coil=cell(3,1);    % theta-rad-z
-[TRZ0_coil{1},TRZ0_coil{2},TRZ0_coil{3}]=cart2pol(XYZ0_coil{:});
-[TT,RR,ZZ]=cart2pol(XYZ0_coil{:});
-
-% region to evaluate
-% nzz=20;
-% nrr=20;
-% ntheta=20;
-% zz=linspace(-20e-3,20e-3,nzz);    % axial [m]
-% rr=linspace(0,20e-3,nrr);        % radial (cylinder) [m]
-% theta=linspace(0,2*pi,ntheta);  % azim angle [rad]
-% [TT,RR,ZZ]=meshgrid(theta,rr,zz);
-
-% evaluate the analytic magnetic field solution
-ell_k2=4*R_coil*RR./((R_coil+RR).^2+ZZ.^2);      % k^2 elliptic parameter
-[K,E]=ellipke(ell_k2);      % complete elliptic integrals of 1st,2nd orders
-
-Bzz=(mu_0*I_coil./(2*pi)).*(1./sqrt((R_coil+RR).^2+ZZ.^2)).*(K+E.*(R_coil^2-RR.^2-ZZ.^2)./((R_coil-RR).^2+ZZ.^2));
-Brr=(mu_0*I_coil./(2*pi*RR)).*(ZZ./sqrt((R_coil+RR).^2+ZZ.^2)).*(-K+E.*(R_coil^2+RR.^2+ZZ.^2)./((R_coil-RR).^2+ZZ.^2));
-Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
-Brr(~isfinite(Brr))=NaN;
-
-Babs=sqrt(Bzz.^2+Brr.^2);     % absolute magnetic field strength [T]
-
-% Reverse transform cyl to original Cart coord (trap centered ref)
-% [xx,yy,zz]=pol2cart(TT,RR,ZZ);
-[Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz);
-
-% % coil orientation + position transform
-% Mrot=euler2rotm(ori_coil);
-% [xx_tf,yy_tf,zz_tf]=rotmesh(Mrot,xx,yy,zz);
-% [Bxx_tf,Byy_tf,Bzz_tf]=rotmesh(Mrot,Bxx,Byy,Bzz);
+% % cartesian to cylindrical
+% [TT,RR,ZZ]=cart2pol(XYZ0_coil{:});
 % 
-% xx_tf=xx_tf+pos_coil(1);
-% yy_tf=yy_tf+pos_coil(2);
-% zz_tf=zz_tf+pos_coil(3);
+% % evaluate the analytic magnetic field solution
+% ell_k2=4*R_coil*RR./((R_coil+RR).^2+ZZ.^2);      % k^2 elliptic parameter
+% [K,E]=ellipke(ell_k2);      % complete elliptic integrals of 1st,2nd orders
+% 
+% Bzz=(mu_0*I_coil./(2*pi)).*(1./sqrt((R_coil+RR).^2+ZZ.^2)).*(K+E.*(R_coil^2-RR.^2-ZZ.^2)./((R_coil-RR).^2+ZZ.^2));
+% Brr=(mu_0*I_coil./(2*pi*RR)).*(ZZ./sqrt((R_coil+RR).^2+ZZ.^2)).*(-K+E.*(R_coil^2+RR.^2+ZZ.^2)./((R_coil-RR).^2+ZZ.^2));
+% Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
+% Brr(~isfinite(Brr))=NaN;
+
+% % Reverse transform cyl to original Cart coord (trap centered ref)
+% [Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz);
+
+% Babs=sqrt(Bzz.^2+Brr.^2);     % absolute magnetic field strength [T]
+
+[Bxx,Byy,Bzz]=Bfield_coil(R_coil,I_coil,XYZ0_coil{:});
+Babs=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
 
 %% Plot
 % config
@@ -119,4 +101,27 @@ xyz=Mrot*[x0(:)';y0(:)';z0(:)'];
 x=reshape(xyz(1,:),nn);
 y=reshape(xyz(2,:),nn);
 z=reshape(xyz(3,:),nn);
+end
+
+% B field calculator for single coil (located at origin, pointing Z-axis)
+function [Bxx,Byy,Bzz]=Bfield_coil(R,I,x,y,z)
+% physical constants
+mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]
+
+% cartesian to cylindrical
+% theta-rad-z
+[TT,RR,ZZ]=cart2pol(x,y,z);
+
+% evaluate the analytic magnetic field solution
+% https://doi.org/10.1103/PhysRevA.35.1535
+ell_k2=4*R*RR./((R+RR).^2+ZZ.^2);      % k^2 elliptic parameter
+[K,E]=ellipke(ell_k2);      % complete elliptic integrals of 1st,2nd orders
+
+Bzz=(mu_0*I./(2*pi)).*(1./sqrt((R+RR).^2+ZZ.^2)).*(K+E.*(R^2-RR.^2-ZZ.^2)./((R-RR).^2+ZZ.^2));
+Brr=(mu_0*I./(2*pi*RR)).*(ZZ./sqrt((R+RR).^2+ZZ.^2)).*(-K+E.*(R^2+RR.^2+ZZ.^2)./((R-RR).^2+ZZ.^2));
+Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
+Brr(~isfinite(Brr))=NaN;
+
+% Reverse transform cyl to original Cart coord (trap centered ref)
+[Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz);
 end
