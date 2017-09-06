@@ -22,15 +22,15 @@ ngrid=100;          % 50 - med; 300 - very fine;
 
 % grid in trap centered ref frame
 xyz0=cell(3,1);
-% %%% MACRO
-% xyz0{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
-% xyz0{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
-% xyz0{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
+%%% MACRO
+xyz0{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
+xyz0{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
+xyz0{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
 
-%%% MICRO
-xyz0{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
-xyz0{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
-xyz0{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
+% %%% MICRO
+% xyz0{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
+% xyz0{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
+% xyz0{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
 
 XYZ0=cell(3,1);
 [XYZ0{1},XYZ0{2},XYZ0{3}]=meshgrid(xyz0{:});    % meshgrid
@@ -87,9 +87,7 @@ XYZ0=cell(3,1);
 %%% config
 % Quad: 14mm Dia; 10 turns;
 % Shunt (Ioffe): 14mm; 18 turns; 
-% coil pitch=500um (wire dia); 
-% AH separation ~17mm; Q-Sh separation=18.5 mm ;
-% ~36 amp (max)
+% pitch=500um (wire dia); AH sep ~17mm; Q-Sh sep=18.5 mm; ~36 amp (max)
 Dquad=14e-3;
 Dshunt=14e-3;
 
@@ -105,6 +103,9 @@ Ishunt=0.2;
 
 Rquad=Dquad/2;
 Rshunt=Dshunt/2;
+
+% Trap bias (nuller)
+Bbias=1e-4*[0.01,0,0];     % external bias field (uniform assumption)
 
 %%% Build trap
 % Quadrupole - ref
@@ -139,11 +140,18 @@ for ii=1:Nturnshunt
 end
 
 %%% Trap magnetic field calculation
-[Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ0{:});
+[Bxx,Byy,Bzz]=trap_eval(btrap,XYZ0{:});
+
+% apply bias
+Bxx=Bxx+Bbias(1);
+Byy=Byy+Bbias(2);
+Bzz=Bzz+Bbias(3);
+
+Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
 
 %% Plot
 % config
-nBisosurf=4;
+nBisosurf=10;
 
 %%% Magnetic field
 % quiver plot for B field
