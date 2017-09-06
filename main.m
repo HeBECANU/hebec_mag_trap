@@ -21,19 +21,21 @@ t_start=tic;
 ngrid=100;          % 50 - med; 300 - very fine;
 
 % grid in trap centered ref frame
-xyz0=cell(3,1);
-%%% MACRO
-xyz0{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
-xyz0{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
-xyz0{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
+xyz=cell(3,1);
+% %%% MACRO
+% xyz{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
+% xyz{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
+% xyz{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
 
-% %%% MICRO
-% xyz0{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
-% xyz0{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
-% xyz0{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
+%%% MICRO
+xyz{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
+xyz{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
+xyz{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
 
-XYZ0=cell(3,1);
-[XYZ0{1},XYZ0{2},XYZ0{3}]=meshgrid(xyz0{:});    % meshgrid
+XYZ=cell(3,1);
+[XYZ{1},XYZ{2},XYZ{3}]=meshgrid(xyz{:});    % meshgrid
+% permute the 3D array so that indexing goes x-y-z
+XYZ=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ,'UniformOutput',false);     
 
 %% Scenario 1: a single coil
 % % config
@@ -54,7 +56,7 @@ XYZ0=cell(3,1);
 % btrap=struct('type',objtype,'param',objparam);
 % 
 % %%% Trap magnetic field calculation
-% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ0{:});
+% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ{:});
 
 %% Scenario 2: anti-Helmholtz with 2 coils
 % %%% config
@@ -81,7 +83,7 @@ XYZ0=cell(3,1);
 % btrap=struct('type',objtype,'param',objparam);
 % 
 % %%% Trap magnetic field calculation
-% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ0{:});
+% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ{:});
 
 %% Scenario 3: BiQUIC
 %%% config
@@ -104,7 +106,7 @@ Ishunt=0.2;
 Rquad=Dquad/2;
 Rshunt=Dshunt/2;
 
-% Trap bias (nuller)
+% Trap bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
 Bbias=1e-4*[0.01,0,0];     % external bias field (uniform assumption)
 
 %%% Build trap
@@ -140,9 +142,10 @@ for ii=1:Nturnshunt
 end
 
 %%% Trap magnetic field calculation
-[Bxx,Byy,Bzz]=trap_eval(btrap,XYZ0{:});
+[Bxx,Byy,Bzz]=trap_eval(btrap,XYZ{:});
 
-% apply bias
+% apply bias field (nuller; spatially uniform)
+% http://dx.doi.org/10.1063/1.2472600
 Bxx=Bxx+Bbias(1);
 Byy=Byy+Bbias(2);
 Bzz=Bzz+Bbias(3);
@@ -151,12 +154,12 @@ Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
 
 %% Plot
 % config
-nBisosurf=10;
+nBisosurf=5;
 
 %%% Magnetic field
 % quiver plot for B field
 hfig_btrap=figure();
-% quiver3(1e3*XYZ0{1},1e3*XYZ0{2},1e3*XYZ0{3},Bxx,Byy,Bzz,...
+% quiver3(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bxx,Byy,Bzz,...
 %     'Color','k','LineWidth',1.5,'Visible','off');
 hold on;
 
@@ -170,16 +173,16 @@ cc=viridis(nBisosurf);
 p={};
 pp=[];
 for ii=1:nBisosurf
-    p{ii}=isosurface(1e3*XYZ0{1},1e3*XYZ0{2},1e3*XYZ0{3},Bmag,Bisoval(ii));
+    p{ii}=isosurface(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bmag,Bisoval(ii));
     pp(ii)=patch(p{ii},'FaceColor',cc(ii,:),'EdgeColor','none','FaceAlpha',0.15,...
         'DisplayName',sprintf('%0.1g',1e4*Bisoval(ii)));
 end
 box on;
 daspect([1,1,1]);
 view(3);
-xlim(1e3*[min(xyz0{1}),max(xyz0{1})]);
-ylim(1e3*[min(xyz0{2}),max(xyz0{2})]);
-zlim(1e3*[min(xyz0{3}),max(xyz0{3})]);
+xlim(1e3*[min(xyz{1}),max(xyz{1})]);
+ylim(1e3*[min(xyz{2}),max(xyz{2})]);
+zlim(1e3*[min(xyz{3}),max(xyz{3})]);
 camlight;
 lighting gouraud;
 
@@ -214,6 +217,47 @@ lgd=legend(pp(:));
 title(lgd,'$B$-isosurface (G)');
 
 %%% 2D B field magnitude contours (potential landscape)
+
+%% Characterise trap: trap center and frequency
+% trap center: point of minimum B magnitude
+% frequency: omega=sqrt(V''/m) [spatial 2nd order derivative]
+
+%%% approximate trap centre (evaluated grid)
+[B0_approx,I0_approx]=min(Bmag(:));
+xyz0_approx=cellfun(@(x) x(I0_approx),XYZ);
+II0_approx=zeros(1,3);        % this is ordered in YXY
+[II0_approx(1),II0_approx(2),II0_approx(3)]=ind2sub(size(Bmag),I0_approx);
+
+%%% B profile in X,Y,Z line profile
+B_1d=cell(3,1);     % 1D line-profile of magnetic field potential [T]
+idxcirc=[1,2,3];
+Bmagcirc=Bmag;      % temporary copy
+for ii=1:3
+    B_1d{ii}=Bmagcirc(:,II0_approx(idxcirc(2)),II0_approx(idxcirc(3)));
+    idxcirc=circshift(idxcirc,-1);
+    Bmagcirc=permute(Bmagcirc,[2,3,1]);     % dimension circular permutation 
+end
+clearvars Bmagcirc;
+
+% plot
+hfig_bmag_1d=figure();
+axisstr={'X','Y','Z'};
+linestyle={'-','--',':'};
+p=[];
+for ii=1:3
+    hold on;
+    % shift coord to approximate trap center
+    p(ii)=plot(1e3*(xyz{ii}-xyz0_approx(ii)),1e4*B_1d{ii},...
+        'LineStyle',linestyle{ii},'LineWidth',1.5,...
+        'DisplayName',axisstr{ii});
+end
+box on;
+xlabel('Displacement [mm]');
+ylabel('$B$ [G]');
+lgd=legend(p);
+title(lgd,sprintf('(%0.2g,%0.2g,%0.2g) [mm]',1e3*xyz0_approx(:)));
+
+%%% approximate trap frequency (evaluated grid)
 
 
 %% End of code
