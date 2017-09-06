@@ -18,7 +18,7 @@ t_start=tic;
 %   [] trap frequency
 
 %% Config grid
-ngrid=100;          % 50 - med; 300 - very fine;
+ngrid=50;          % 50 - med; 300 - very fine;
 
 % grid in trap centered ref frame
 xyz=cell(3,1);
@@ -140,6 +140,10 @@ for ii=1:Nturnshunt
     shunt_coil_temp.param{3}=[1,1,-1].*shunt_coil_temp.param{3};
     btrap=[btrap,shunt_coil_temp];
 end
+
+%%% Find trap center with current trap config
+% find X to minimise $Bmag$ from trap_eval(btrap,X,0,0)+Bbias - from symmetry
+% initial guess param ~1e-6
 
 %%% Trap magnetic field calculation
 [Bxx,Byy,Bzz]=trap_eval(btrap,XYZ{:});
@@ -265,87 +269,3 @@ t_end=toc(t_start);
 disp('-----------------------------------------------');
 fprintf('Total elapsed time (s): %7.1f\n',t_end);
 disp('===================ALL TASKS COMPLETED===================');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% functions
-%%% useful rotator for meshgrid
-function [x,y,z]=rotmesh(Mrot,x0,y0,z0)
-nn=size(x0);    % size of the meshgrid
-xyz=Mrot*[x0(:)';y0(:)';z0(:)'];
-x=reshape(xyz(1,:),nn);
-y=reshape(xyz(2,:),nn);
-z=reshape(xyz(3,:),nn);
-end
-
-%%% B field calculator for single coil (located at origin, pointing Z-axis)
-function [Bxx,Byy,Bzz]=Bfield_coil(R,I,x,y,z)
-% physical constants
-mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]
-
-% cartesian to cylindrical
-% theta-rad-z
-[TT,RR,ZZ]=cart2pol(x,y,z);
-
-% evaluate the analytic magnetic field solution
-% https://doi.org/10.1103/PhysRevA.35.1535
-ell_k2=4*R*RR./((R+RR).^2+ZZ.^2);      % k^2 elliptic parameter
-[K,E]=ellipke(ell_k2);      % complete elliptic integrals of 1st,2nd orders
-
-Bzz=(mu_0*I./(2*pi)).*(1./sqrt((R+RR).^2+ZZ.^2)).*(K+E.*(R^2-RR.^2-ZZ.^2)./((R-RR).^2+ZZ.^2));
-Brr=(mu_0*I./(2*pi*RR)).*(ZZ./sqrt((R+RR).^2+ZZ.^2)).*(-K+E.*(R^2+RR.^2+ZZ.^2)./((R-RR).^2+ZZ.^2));
-Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
-Brr(~isfinite(Brr))=NaN;
-
-% Reverse transform cyl to original Cart coord (trap centered ref)
-[Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz);
-end
-
-%%% Evaluate B field for a trap
-function [Bxx,Byy,Bzz,Bmag]=trap_eval(trap,x,y,z)
-% trap configuration
-ncomps=numel(trap);
-
-% evaluate B field from each component at the grid region
-for ii=1:ncomps
-    obj_this=trap(ii);
-    type_this=obj_this.type;
-    param_this=obj_this.param;
-    
-    Bxyz_this=cell(3,1);
-    
-    % evaluate B field for this object
-    switch type_this
-        case 'coil'
-            % get coil param: {R, I, POS, ORI}            
-            R=param_this{1};
-            I=param_this{2};
-            pos=param_this{3};
-            ori=param_this{4};
-            
-            % coord translation
-            xyz={x,y,z};
-            xyz_tf=cell(3,1);
-            for jj=1:3
-                xyz_tf{jj}=xyz{jj}-pos(jj);
-            end
-            
-            % call the coil calculator
-            [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R,I,xyz_tf{:});
-            
-        otherwise
-            error('<TRAP>.type of %s is not recognised.',string(typethis));
-    end
-    
-    % add to total B field array
-    if ii==1
-        Bxyz=Bxyz_this;
-    else
-        Bxyz=cellfun(@(x,y)x+y,Bxyz,Bxyz_this,'UniformOutput',false);
-    end
-end
-% get B field vector components
-Bxx=Bxyz{1};
-Byy=Bxyz{2};
-Bzz=Bxyz{3};
-Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
-end
