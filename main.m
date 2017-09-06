@@ -2,6 +2,8 @@
 % D K Shin
 % refer to https://doi.org/10.1103/PhysRevA.35.1535 for expressions used
 
+clear all;
+
 t_start=tic;
 
 % TODO:
@@ -9,7 +11,7 @@ t_start=tic;
 %   similarly ordered (TT,RR,ZZ) vectors for each unique coil
 % [x] evaluate B from each coil in trap coord
 % [x] sum B - total B field
-% [] set up to biQUIC dimension - Ross
+% [x] set up to biQUIC dimension - Ross
 % [] Voltage to current conversion
 % [] characterise potential
 %   [] isosurfaces on B magnitude
@@ -20,15 +22,15 @@ ngrid=100;          % 50 - med; 300 - very fine;
 
 % grid in trap centered ref frame
 xyz0=cell(3,1);
-%%% MACRO
-xyz0{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
-xyz0{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
-xyz0{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
+% %%% MACRO
+% xyz0{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
+% xyz0{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
+% xyz0{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
 
-% %%% MICRO
-% xyz0{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
-% xyz0{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
-% xyz0{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
+%%% MICRO
+xyz0{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
+xyz0{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
+xyz0{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
 
 XYZ0=cell(3,1);
 [XYZ0{1},XYZ0{2},XYZ0{3}]=meshgrid(xyz0{:});    % meshgrid
@@ -49,10 +51,10 @@ XYZ0=cell(3,1);
 %     objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
 % end
 % % create trap
-% singlecoil=struct('type',objtype,'param',objparam);
+% btrap=struct('type',objtype,'param',objparam);
 % 
 % %%% Trap magnetic field calculation
-% [Bxx,Byy,Bzz,Bmag]=trap_eval(singlecoil,XYZ0{:});
+% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ0{:});
 
 %% Scenario 2: anti-Helmholtz with 2 coils
 % %%% config
@@ -76,10 +78,10 @@ XYZ0=cell(3,1);
 % for ii=1:ncomps
 %     objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
 % end
-% antihelmholtz=struct('type',objtype,'param',objparam);
+% btrap=struct('type',objtype,'param',objparam);
 % 
 % %%% Trap magnetic field calculation
-% [Bxx,Byy,Bzz,Bmag]=trap_eval(antihelmholtz,XYZ0{:});
+% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ0{:});
 
 %% Scenario 3: BiQUIC
 %%% config
@@ -91,54 +93,53 @@ XYZ0=cell(3,1);
 Dquad=14e-3;
 Dshunt=14e-3;
 
+Nturnshunt=18;
+Nturnquad=10;
+pitch_coil=0.5e-3;
+
 disp_ah=17e-3;
 disp_qs=18.5e-3;
 
 Iquad=1;
-Nquad=10;
-Ishunt=1;
-Nshunt=18;
+Ishunt=0.2;
 
 Rquad=Dquad/2;
 Rshunt=Dshunt/2;
 
-% QUAD coil 1
-R_coil{1}=Rquad;    % coil radius [m]
-I_coil{1}=-Iquad;        % coil current [A]
-ori_coil{1}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{1}=[0,0,-disp_ah/2];           % coil centre position (x,y,z)
+%%% Build trap
+% Quadrupole - ref
+quad_coil.type='coil';
+quad_coil.param={Rquad,Iquad,[0,0,disp_ah/2],[0,0,0]};
+% Shunt (Ioffe) - ref
+shunt_coil.type='coil';
+shunt_coil.param={Rshunt,Ishunt,[disp_qs,0,disp_ah/2],[0,0,0]};
 
-% Quad coil 2
-R_coil{2}=Rquad;    % coil radius [m]
-I_coil{2}=Iquad;        % coil current [A]
-ori_coil{2}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{2}=[0,0,disp_ah/2];           % coil centre position (x,y,z)
-
-% Shunt
-% Shunt coil 1
-R_coil{3}=Rshunt;    % coil radius [m]
-I_coil{3}=-Ishunt;        % coil current [A]
-ori_coil{3}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{3}=[disp_qs,0,-disp_ah/2];           % coil centre position (x,y,z)
-
-% Shunt coil 2
-R_coil{4}=Rshunt;    % coil radius [m]
-I_coil{4}=Ishunt;        % coil current [A]
-ori_coil{4}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{4}=[disp_qs,0,disp_ah/2];           % coil centre position (x,y,z)
-
-%%% Build trap as a struct array of components
-ncomps=numel(R_coil);
-objtype=cell(1,ncomps);
-objparam=cell(1,ncomps);
-objtype(:)={'coil'};
-for ii=1:ncomps
-    objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
+btrap=[];
+for ii=1:Nturnquad
+    quad_coil_temp=quad_coil;
+    % shift by wire pitch
+    quad_coil_temp.param{3}=quad_coil_temp.param{3}+(ii-1)*[0,0,pitch_coil];
+    btrap=[btrap,quad_coil_temp];
+    
+    % anti-helmholtz pair - mirror symmetry around Z
+    quad_coil_temp.param{2}=-1*quad_coil_temp.param{2};     % flip current dir
+    quad_coil_temp.param{3}=[1,1,-1].*quad_coil_temp.param{3};
+    btrap=[btrap,quad_coil_temp];
 end
-biquic=struct('type',objtype,'param',objparam);
+for ii=1:Nturnshunt
+    shunt_coil_temp=shunt_coil;
+    % shift by wire pitch
+    shunt_coil_temp.param{3}=shunt_coil_temp.param{3}+(ii-1)*[0,0,pitch_coil];
+    btrap=[btrap,shunt_coil_temp];
+    
+    % anti-helmholtz pair - mirror symmetry around Z
+    shunt_coil_temp.param{2}=-1*shunt_coil_temp.param{2};   % flip current dir
+    shunt_coil_temp.param{3}=[1,1,-1].*shunt_coil_temp.param{3};
+    btrap=[btrap,shunt_coil_temp];
+end
 
 %%% Trap magnetic field calculation
-[Bxx,Byy,Bzz,Bmag]=trap_eval(biquic,XYZ0{:});
+[Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ0{:});
 
 %% Plot
 % config
@@ -185,19 +186,19 @@ nnring=100;
 phi=linspace(0,2*pi,nnring);
 [x_ring,y_ring]=pol2cart(phi,1);
 z_ring=zeros(1,nnring);
-for ii=1:length(R_coil)
+for ii=1:numel(btrap)
     % draw this coil
     figure(hfig_btrap);
     hold on;
     
     % transform from unit ring
-    R_coil_this=R_coil{ii};
-    pos_coil_this=pos_coil{ii};
+    R_coil_this=btrap(ii).param{1};
+    pos_coil_this=btrap(ii).param{3};
     xthis=R_coil_this*x_ring+pos_coil_this(1);
     ythis=R_coil_this*y_ring+pos_coil_this(2);
     zthis=R_coil_this*z_ring+pos_coil_this(3);
     plot3(1e3*xthis,1e3*ythis,1e3*zthis,...
-        'Color','k','LineWidth',3);
+        'Color','k','LineWidth',2);
 end
 
 % legend
