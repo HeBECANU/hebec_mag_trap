@@ -35,20 +35,24 @@ XYZ0=cell(3,1);
 
 %% Scenario 1: a single coil
 % % config
-% R_coil=10e-3;    % coil radius [m]
-% I_coil=1;        % coil current [A]
-% ori_coil=[0,0,0];           % coil orientation - Euler angles
-% pos_coil=[0,0,0];           % coil centre position (x,y,z)
+% R_coil{1}=10e-3;    % coil radius [m]
+% I_coil{1}=1;        % coil current [A]
+% ori_coil{1}=[0,0,0];           % coil orientation - Euler angles
+% pos_coil{1}=[0,0,0];           % coil centre position (x,y,z)
 % 
-% %%% evaluate the grid region in coil centered frame
-% % coord translation
-% XYZ0_coil=cell(3,1);
-% for ii=1:3
-%     XYZ0_coil{ii}=XYZ0{ii}-pos_coil(ii);     
+% %%% Build trap as a struct array of components
+% ncomps=numel(R_coil);
+% objtype=cell(1,ncomps);
+% objparam=cell(1,ncomps);
+% objtype(:)={'coil'};    % all coils!
+% for ii=1:ncomps
+%     objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
 % end
+% % create trap
+% singlecoil=struct('type',objtype,'param',objparam);
 % 
-% [Bxx,Byy,Bzz]=Bfield_coil(R_coil,I_coil,XYZ0_coil{:});
-% Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+% %%% Trap magnetic field calculation
+% [Bxx,Byy,Bzz,Bmag]=trap_eval(singlecoil,XYZ0{:});
 
 %% Scenario 2: anti-Helmholtz with 2 coils
 % %%% config
@@ -64,32 +68,18 @@ XYZ0=cell(3,1);
 % ori_coil{2}=[0,0,0];           % coil orientation - Euler angles
 % pos_coil{2}=[0,0,4e-3];           % coil centre position (x,y,z)
 % 
-% %%% evaluate the grid region in coil centered frame
-% for ii=1:length(R_coil)
-%     R_coil_this=R_coil{ii};
-%     I_coil_this=I_coil{ii};
-%     pos_coil_this=pos_coil{ii};
-%     
-%     % coord translation
-%     XYZ0_coil_this=cell(3,1);
-%     for jj=1:3
-%         XYZ0_coil_this{jj}=XYZ0{jj}-pos_coil_this(jj);
-%     end
-%     
-%     Bxyz_this=cell(3,1);
-%     [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R_coil_this,I_coil_this,XYZ0_coil_this{:});
-%     
-%     if ii==1
-%         Bxyz=Bxyz_this;
-%     else
-%         Bxyz=cellfun(@(x,y)x+y,Bxyz,Bxyz_this,'UniformOutput',false);
-%     end
+% %%% Build trap as a struct array of components
+% ncomps=numel(R_coil);
+% objtype=cell(1,ncomps);
+% objparam=cell(1,ncomps);
+% objtype(:)={'coil'};    % all coils!
+% for ii=1:ncomps
+%     objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
 % end
-% Bxx=Bxyz{1};
-% Byy=Bxyz{2};
-% Bzz=Bxyz{3};
+% antihelmholtz=struct('type',objtype,'param',objparam);
 % 
-% Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+% %%% Trap magnetic field calculation
+% [Bxx,Byy,Bzz,Bmag]=trap_eval(antihelmholtz,XYZ0{:});
 
 %% Scenario 3: BiQUIC
 %%% config
@@ -137,32 +127,18 @@ I_coil{4}=Ishunt;        % coil current [A]
 ori_coil{4}=[0,0,0];           % coil orientation - Euler angles
 pos_coil{4}=[disp_qs,0,disp_ah/2];           % coil centre position (x,y,z)
 
-%%% evaluate the grid region in coil centered frame
-for ii=1:length(R_coil)
-    R_coil_this=R_coil{ii};
-    I_coil_this=I_coil{ii};
-    pos_coil_this=pos_coil{ii};
-    
-    % coord translation
-    XYZ0_coil_this=cell(3,1);
-    for jj=1:3
-        XYZ0_coil_this{jj}=XYZ0{jj}-pos_coil_this(jj);
-    end
-    
-    Bxyz_this=cell(3,1);
-    [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R_coil_this,I_coil_this,XYZ0_coil_this{:});
-    
-    if ii==1
-        Bxyz=Bxyz_this;
-    else
-        Bxyz=cellfun(@(x,y)x+y,Bxyz,Bxyz_this,'UniformOutput',false);
-    end
+%%% Build trap as a struct array of components
+ncomps=numel(R_coil);
+objtype=cell(1,ncomps);
+objparam=cell(1,ncomps);
+objtype(:)={'coil'};
+for ii=1:ncomps
+    objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
 end
-Bxx=Bxyz{1};
-Byy=Bxyz{2};
-Bzz=Bxyz{3};
+biquic=struct('type',objtype,'param',objparam);
 
-Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+%%% Trap magnetic field calculation
+[Bxx,Byy,Bzz,Bmag]=trap_eval(biquic,XYZ0{:});
 
 %% Plot
 % config
@@ -239,7 +215,7 @@ disp('===================ALL TASKS COMPLETED===================');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% functions
-% useful rotator for meshgrid
+%%% useful rotator for meshgrid
 function [x,y,z]=rotmesh(Mrot,x0,y0,z0)
 nn=size(x0);    % size of the meshgrid
 xyz=Mrot*[x0(:)';y0(:)';z0(:)'];
@@ -248,7 +224,7 @@ y=reshape(xyz(2,:),nn);
 z=reshape(xyz(3,:),nn);
 end
 
-% B field calculator for single coil (located at origin, pointing Z-axis)
+%%% B field calculator for single coil (located at origin, pointing Z-axis)
 function [Bxx,Byy,Bzz]=Bfield_coil(R,I,x,y,z)
 % physical constants
 mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]
@@ -269,4 +245,54 @@ Brr(~isfinite(Brr))=NaN;
 
 % Reverse transform cyl to original Cart coord (trap centered ref)
 [Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz);
+end
+
+%%% Evaluate B field for a trap
+function [Bxx,Byy,Bzz,Bmag]=trap_eval(trap,x,y,z)
+% trap configuration
+ncomps=numel(trap);
+
+% evaluate B field from each component at the grid region
+for ii=1:ncomps
+    obj_this=trap(ii);
+    type_this=obj_this.type;
+    param_this=obj_this.param;
+    
+    Bxyz_this=cell(3,1);
+    
+    % evaluate B field for this object
+    switch type_this
+        case 'coil'
+            % get coil param: {R, I, POS, ORI}            
+            R=param_this{1};
+            I=param_this{2};
+            pos=param_this{3};
+            ori=param_this{4};
+            
+            % coord translation
+            xyz={x,y,z};
+            xyz_tf=cell(3,1);
+            for jj=1:3
+                xyz_tf{jj}=xyz{jj}-pos(jj);
+            end
+            
+            % call the coil calculator
+            [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R,I,xyz_tf{:});
+            
+        otherwise
+            error('<TRAP>.type of %s is not recognised.',string(typethis));
+    end
+    
+    % add to total B field array
+    if ii==1
+        Bxyz=Bxyz_this;
+    else
+        Bxyz=cellfun(@(x,y)x+y,Bxyz,Bxyz_this,'UniformOutput',false);
+    end
+end
+% get B field vector components
+Bxx=Bxyz{1};
+Byy=Bxyz{2};
+Bzz=Bxyz{3};
+Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
 end
