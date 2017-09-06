@@ -1,5 +1,10 @@
 %%% Evaluate B field for a trap
-function [Bxx,Byy,Bzz,Bmag]=trap_eval(trap,x,y,z)
+function [Bmag,Bout]=trap_eval(trap,x,y,z)
+% Bmag is an array (same size as x,y,z)
+% Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
+%
+% EDIT - [Bmag,Bxx,Byy,Bzz]=trap_eval(trap,x,y,z)
+
 % trap configuration
 ncomps=numel(trap);
 
@@ -28,7 +33,17 @@ for ii=1:ncomps
             end
             
             % call the coil calculator
-            [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R,I,xyz_tf{:});
+%             [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R,I,xyz_tf{:});
+%             % EDIT
+            Bxyz_this=Bfield_coil(R,I,xyz_tf{:});
+            
+        case 'uniform'
+            % uniform B field
+            % params: {[Bx,By,Bz]}
+            Buni=param_this{1};     % get the uniform B field vector
+            for jj=1:3
+                Bxyz_this{jj}=Buni(jj);
+            end
             
         otherwise
             error('<TRAP>.type of %s is not recognised.',string(typethis));
@@ -36,14 +51,18 @@ for ii=1:ncomps
     
     % add to total B field array
     if ii==1
-        Bxyz=Bxyz_this;
+        Bout=Bxyz_this;
     else
-        Bxyz=cellfun(@(x,y)x+y,Bxyz,Bxyz_this,'UniformOutput',false);
+        Bout=cellfun(@(x,y)x+y,Bout,Bxyz_this,'UniformOutput',false);
     end
 end
 % get B field vector components
-Bxx=Bxyz{1};
-Byy=Bxyz{2};
-Bzz=Bxyz{3};
-Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% EDIT
+% Bxx=Bout{1};
+% Byy=Bout{2};
+% Bzz=Bout{3};
+% Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Bmag=sqrt(esumsqr(Bout{:}));     % absolute magnetic field strength [T]
 end

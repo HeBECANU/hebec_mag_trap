@@ -1,5 +1,9 @@
 %%% B field calculator for single coil (located at origin, pointing Z-axis)
-function [Bxx,Byy,Bzz]=Bfield_coil(R,I,x,y,z)
+function Bout=Bfield_coil(R,I,x,y,z)
+% Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
+%
+% EDIT - [Bxx,Byy,Bzz]=Bfield_coil(R,I,x,y,z)
+
 % physical constants
 mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]
 
@@ -18,6 +22,7 @@ Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
 Brr(~isfinite(Brr))=NaN;
 
 % Reverse transform cyl to original Cart coord (trap centered ref)
-[Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz);
+% [Bxx,Byy,Bzz]=pol2cart(TT,Brr,Bzz); % EDIT
+Bout=cell(3,1);
+[Bout{:}]=pol2cart(TT,Brr,Bzz);
 end
-

@@ -56,7 +56,7 @@ XYZ=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ,'UniformOutput',false);
 % btrap=struct('type',objtype,'param',objparam);
 % 
 % %%% Trap magnetic field calculation
-% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ{:});
+% [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
 
 %% Scenario 2: anti-Helmholtz with 2 coils
 % %%% config
@@ -83,7 +83,7 @@ XYZ=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ,'UniformOutput',false);
 % btrap=struct('type',objtype,'param',objparam);
 % 
 % %%% Trap magnetic field calculation
-% [Bxx,Byy,Bzz,Bmag]=trap_eval(btrap,XYZ{:});
+% [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
 
 %% Scenario 3: BiQUIC
 %%% config
@@ -116,6 +116,9 @@ quad_coil.param={Rquad,Iquad,[0,0,disp_ah/2],[0,0,0]};
 % Shunt (Ioffe) - ref
 shunt_coil.type='coil';
 shunt_coil.param={Rshunt,Ishunt,[disp_qs,0,disp_ah/2],[0,0,0]};
+% Bias (nuller)
+bias.type='uniform';
+bias.param={Bbias};
 
 btrap=[];
 for ii=1:Nturnquad
@@ -140,21 +143,27 @@ for ii=1:Nturnshunt
     shunt_coil_temp.param{3}=[1,1,-1].*shunt_coil_temp.param{3};
     btrap=[btrap,shunt_coil_temp];
 end
+btrap=[btrap,bias];
 
 %%% Find trap center with current trap config
-% find X to minimise $Bmag$ from trap_eval(btrap,X,0,0)+Bbias - from symmetry
+% find X to minimise $Bmag$ from trap_eval(btrap,X,0,0) - from symmetry
 % initial guess param ~1e-6
 
 %%% Trap magnetic field calculation
-[Bxx,Byy,Bzz]=trap_eval(btrap,XYZ{:});
+[Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
 
-% apply bias field (nuller; spatially uniform)
-% http://dx.doi.org/10.1063/1.2472600
-Bxx=Bxx+Bbias(1);
-Byy=Byy+Bbias(2);
-Bzz=Bzz+Bbias(3);
-
-Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% EDIT - bias incorporated in trap definition, vector field packaged in a
+% single cell-array output (see Bfield_coil.m and trap_eval.m)
+% 
+% % apply bias field (nuller; spatially uniform)
+% % http://dx.doi.org/10.1063/1.2472600
+% Bxx=Bxx+Bbias(1);
+% Byy=Byy+Bbias(2);
+% Bzz=Bzz+Bbias(3);
+% 
+% Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Plot
 % config
@@ -163,7 +172,7 @@ nBisosurf=5;
 %%% Magnetic field
 % quiver plot for B field
 hfig_btrap=figure();
-% quiver3(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bxx,Byy,Bzz,...
+% quiver3(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bxyz{:},...
 %     'Color','k','LineWidth',1.5,'Visible','off');
 hold on;
 
@@ -201,19 +210,22 @@ nnring=100;
 phi=linspace(0,2*pi,nnring);
 [x_ring,y_ring]=pol2cart(phi,1);
 z_ring=zeros(1,nnring);
+figure(hfig_btrap);
 for ii=1:numel(btrap)
-    % draw this coil
-    figure(hfig_btrap);
-    hold on;
-    
-    % transform from unit ring
-    R_coil_this=btrap(ii).param{1};
-    pos_coil_this=btrap(ii).param{3};
-    xthis=R_coil_this*x_ring+pos_coil_this(1);
-    ythis=R_coil_this*y_ring+pos_coil_this(2);
-    zthis=R_coil_this*z_ring+pos_coil_this(3);
-    plot3(1e3*xthis,1e3*ythis,1e3*zthis,...
-        'Color','k','LineWidth',2);
+    % only plot coils
+    if isequal(btrap(ii).type,'coil')
+        % transform from unit ring
+        R_coil_this=btrap(ii).param{1};
+        pos_coil_this=btrap(ii).param{3};
+        xthis=R_coil_this*x_ring+pos_coil_this(1);
+        ythis=R_coil_this*y_ring+pos_coil_this(2);
+        zthis=R_coil_this*z_ring+pos_coil_this(3);
+        
+        % draw this coil
+        hold on;
+        plot3(1e3*xthis,1e3*ythis,1e3*zthis,...
+            'Color','k','LineWidth',2);
+    end
 end
 
 % legend
