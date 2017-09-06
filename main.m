@@ -93,35 +93,49 @@ XYZ0=cell(3,1);
 
 %% Scenario 3: BiQUIC
 %%% config
-Rquad=5e-3;
+% Quad: 14mm Dia; 10 turns;
+% Shunt (Ioffe): 14mm; 18 turns; 
+% coil pitch=500um (wire dia); 
+% AH separation ~17mm; Q-Sh separation=18.5 mm ;
+% ~36 amp (max)
+Dquad=14e-3;
+Dshunt=14e-3;
+
+disp_ah=17e-3;
+disp_qs=18.5e-3;
+
 Iquad=1;
-Rshunt=3e-3;
+Nquad=10;
 Ishunt=1;
+Nshunt=18;
+
+Rquad=Dquad/2;
+Rshunt=Dshunt/2;
 
 % QUAD coil 1
 R_coil{1}=Rquad;    % coil radius [m]
 I_coil{1}=-Iquad;        % coil current [A]
 ori_coil{1}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{1}=[0,0,-4e-3];           % coil centre position (x,y,z)
+pos_coil{1}=[0,0,-disp_ah/2];           % coil centre position (x,y,z)
 
 % Quad coil 2
 R_coil{2}=Rquad;    % coil radius [m]
 I_coil{2}=Iquad;        % coil current [A]
 ori_coil{2}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{2}=[0,0,4e-3];           % coil centre position (x,y,z)
+pos_coil{2}=[0,0,disp_ah/2];           % coil centre position (x,y,z)
 
 % Shunt
 % Shunt coil 1
 R_coil{3}=Rshunt;    % coil radius [m]
 I_coil{3}=-Ishunt;        % coil current [A]
 ori_coil{3}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{3}=[10e-3,0,-4e-3];           % coil centre position (x,y,z)
+pos_coil{3}=[disp_qs,0,-disp_ah/2];           % coil centre position (x,y,z)
 
 % Shunt coil 2
 R_coil{4}=Rshunt;    % coil radius [m]
 I_coil{4}=Ishunt;        % coil current [A]
 ori_coil{4}=[0,0,0];           % coil orientation - Euler angles
-pos_coil{4}=[10e-3,0,4e-3];           % coil centre position (x,y,z)
+pos_coil{4}=[disp_qs,0,disp_ah/2];           % coil centre position (x,y,z)
 
 %%% evaluate the grid region in coil centered frame
 for ii=1:length(R_coil)
@@ -184,12 +198,35 @@ zlim(1e3*[min(xyz0{3}),max(xyz0{3})]);
 camlight;
 lighting gouraud;
 
-lgd=legend(pp(:));
-title(lgd,'$B$-isosurface (G)');
-
 xlabel('X [mm]');
 ylabel('Y [mm]');
 zlabel('Z [mm]');
+
+%%% Coils
+% NOTE: coil widths are not to true scale!
+% unit ring
+nnring=100;
+phi=linspace(0,2*pi,nnring);
+[x_ring,y_ring]=pol2cart(phi,1);
+z_ring=zeros(1,nnring);
+for ii=1:length(R_coil)
+    % draw this coil
+    figure(hfig_btrap);
+    hold on;
+    
+    % transform from unit ring
+    R_coil_this=R_coil{ii};
+    pos_coil_this=pos_coil{ii};
+    xthis=R_coil_this*x_ring+pos_coil_this(1);
+    ythis=R_coil_this*y_ring+pos_coil_this(2);
+    zthis=R_coil_this*z_ring+pos_coil_this(3);
+    plot3(1e3*xthis,1e3*ythis,1e3*zthis,...
+        'Color','k','LineWidth',3);
+end
+
+% legend
+lgd=legend(pp(:));
+title(lgd,'$B$-isosurface (G)');
 
 %%% 2D B field magnitude contours (potential landscape)
 
