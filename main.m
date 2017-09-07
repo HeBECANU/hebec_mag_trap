@@ -101,13 +101,13 @@ disp_ah=17e-3;
 disp_qs=18.5e-3;
 
 Iquad=1;
-Ishunt=0.2;
+Ishunt=1.5;
 
 Rquad=Dquad/2;
 Rshunt=Dshunt/2;
 
 % Trap bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
-Bbias=1e-4*[0.01,0,0];     % external bias field (uniform assumption)
+Bbias=1e-4*[1,0,0];     % external bias field [T] (uniform assumption)
 
 %%% Build trap
 % Quadrupole - ref
@@ -169,11 +169,14 @@ scatter3(1e3*trap_cent(1),1e3*trap_cent(2),1e3*trap_cent(3),...
     'SizeData',30,'DisplayName','Trap centre');
 
 %%% Get B field near trap centre
-% build trap scale grid (~10 um each dir)
+% config
 ngrid_trap=50;
+trap_lim=[-10e-6,10e-6; -10e-6,10e-6; -10e-6,10e-6];
+
+% build trap scale grid (~10 um each dir)
 xyz_trap=cell(3,1);
 for ii=1:3
-    xyz_trap{ii}=trap_cent(ii)+linspace(-10e-6,10e-6,ngrid_trap);
+    xyz_trap{ii}=trap_cent(ii)+linspace(trap_lim(ii,1),trap_lim(ii,2),ngrid_trap);
 end
 XYZ_trap=cell(3,1);
 [XYZ_trap{1},XYZ_trap{2},XYZ_trap{3}]=meshgrid(xyz_trap{:});    % meshgrid
