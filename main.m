@@ -22,15 +22,15 @@ ngrid=50;          % 50 - med; 300 - very fine;
 
 % grid in trap centered ref frame
 xyz=cell(3,1);
-% %%% MACRO
-% xyz{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
-% xyz{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
-% xyz{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
-% 
-%%% MICRO
-xyz{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
-xyz{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
-xyz{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
+%%% MACRO
+xyz{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
+xyz{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
+xyz{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
+
+% %%% MICRO
+% xyz{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
+% xyz{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
+% xyz{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
 
 XYZ=cell(3,1);
 [XYZ{1},XYZ{2},XYZ{3}]=meshgrid(xyz{:});    % meshgrid
@@ -148,78 +148,8 @@ btrap=[btrap,bias];
 %%% Trap magnetic field calculation
 [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
 
-%% Plot
+%% Trap visualisation - B-isosurfaces
 hfig_btrap=plot_B_3d(btrap,Bmag,XYZ);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % config
-% nBisosurf=5;
-% 
-% %%% Magnetic field
-% % quiver plot for B field
-% hfig_btrap=figure();
-% % quiver3(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bxyz{:},...
-% %     'Color','k','LineWidth',1.5,'Visible','off');
-% hold on;
-% 
-% %%% B field magnitude - isosurfaces (isopotentials)
-% Bmax=max(Bmag(isfinite(Bmag)));
-% Bmin=min(Bmag(isfinite(Bmag)));
-% % Bisoval=linspace(Bmin,Bmax,nBisosurf+2);
-% Bisoval=logspace(log10(Bmin),log10(Bmax),nBisosurf+2);
-% Bisoval=Bisoval(2:end-1);   % cull the min and max
-% cc=viridis(nBisosurf);
-% p={};
-% pp=[];
-% for ii=1:nBisosurf
-%     p{ii}=isosurface(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bmag,Bisoval(ii));
-%     pp(ii)=patch(p{ii},'FaceColor',cc(ii,:),'EdgeColor','none','FaceAlpha',0.15,...
-%         'DisplayName',sprintf('%0.1g',1e4*Bisoval(ii)));
-% end
-% box on;
-% daspect([1,1,1]);
-% view(3);
-% xlim(1e3*[min(xyz{1}),max(xyz{1})]);
-% ylim(1e3*[min(xyz{2}),max(xyz{2})]);
-% zlim(1e3*[min(xyz{3}),max(xyz{3})]);
-% camlight;
-% lighting gouraud;
-% 
-% xlabel('X [mm]');
-% ylabel('Y [mm]');
-% zlabel('Z [mm]');
-% 
-% %%% Coils
-% % NOTE: coil widths in plot are not to true scale!
-% % unit ring
-% nnring=100;
-% phi=linspace(0,2*pi,nnring);
-% [x_ring,y_ring]=pol2cart(phi,1);
-% z_ring=zeros(1,nnring);
-% figure(hfig_btrap);
-% for ii=1:numel(btrap)
-%     % only plot coils
-%     if isequal(btrap(ii).type,'coil')
-%         % transform from unit ring
-%         R_coil_this=btrap(ii).param{1};
-%         pos_coil_this=btrap(ii).param{3};
-%         xthis=R_coil_this*x_ring+pos_coil_this(1);
-%         ythis=R_coil_this*y_ring+pos_coil_this(2);
-%         zthis=R_coil_this*z_ring+pos_coil_this(3);
-%         
-%         % draw this coil
-%         hold on;
-%         plot3(1e3*xthis,1e3*ythis,1e3*zthis,...
-%             'Color','k','LineWidth',2);
-%     end
-% end
-% 
-% % legend
-% lgd=legend(pp(:));
-% title(lgd,'$B$-isosurface (G)');
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%% 2D B field magnitude contours (potential landscape)
 
 %% Characterise trap: trap center and frequency
 % trap center: point of minimum B magnitude
@@ -227,13 +157,20 @@ hfig_btrap=plot_B_3d(btrap,Bmag,XYZ);
 
 %%% Find trap center with current trap config
 % find X to minimise $Bmag$ from trap_eval(btrap,X,0,0) - from symmetry
-% initial guess param ~1e-6
-[x_cent,B_cent]=fminsearch(@(x) trap_eval(btrap,1e-3*x,0,0),0.1);   % NOTE: x_cent is in mm - scaling
-trap_cent=[1e-3*x_cent,0,0];    % evaluated trap centre [m]
+% initial guess param X~0.1 [mm]
+% NOTE: x_cent solve in mm scale (function domain scaled to order of unity)
+[x_cent,B_cent]=fminsearch(@(x) trap_eval(btrap,1e-3*x,0,0),0.1);   
+trap_cent=[1e-3*x_cent,0,0];    % mm-->m evaluated trap centre [m]
+
+% display evaluated trap centre
+figure(hfig_btrap);
+scatter3(1e3*trap_cent(1),1e3*trap_cent(2),1e3*trap_cent(3),...
+    'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','none',...
+    'SizeData',30,'DisplayName','Trap centre');
 
 %%% Get B field near trap centre
-% trap scale grid (~10 um)
-ngrid_trap=30;
+% build trap scale grid (~10 um each dir)
+ngrid_trap=50;
 xyz_trap=cell(3,1);
 for ii=1:3
     xyz_trap{ii}=trap_cent(ii)+linspace(-10e-6,10e-6,ngrid_trap);
@@ -246,77 +183,48 @@ XYZ_trap=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ_trap,'UniformOutput',false);
 % calculate magnetic field
 [Bmag_trap,Bxyz_trap]=trap_eval(btrap,XYZ_trap{:});
 
-% %%% B profile in X,Y,Z line profile
-% B_trap_1d=cell(3,1);     % 1D line-profile of magnetic field potential [T]
-% idxcirc=[1,2,3];
-% Bmagcirc=Bmag_trap;      % temporary copy
-% for ii=1:3
-%     B_trap_1d{ii}=Bmagcirc(:,II0_approx(idxcirc(2)),II0_approx(idxcirc(3)));
-%     idxcirc=circshift(idxcirc,-1);
-%     Bmagcirc=permute(Bmagcirc,[2,3,1]);     % dimension circular permutation
-% end
-% clearvars Bmagcirc;
+%%% B profile in X,Y,Z line profile
+% indices to trap centre (in grid)
+[~,I0]=min(abs(Bmag_trap(:)-B_cent));
+II0=zeros(1,3);        % this is ordered in YXY
+[II0(1),II0(2),II0(3)]=ind2sub(size(Bmag_trap),I0);     % index to trap cent
 
-%%% plot results
-% 3D B-isosurfaces
+B_trap_1d=cell(3,1);     % 1D line-profile of magnetic field potential [T]
+idxcirc=[1,2,3];
+Bmagcirc=Bmag_trap;      % temporary copy
+for ii=1:3
+    B_trap_1d{ii}=Bmagcirc(:,II0(idxcirc(2)),II0(idxcirc(3)));
+    idxcirc=circshift(idxcirc,-1);
+    Bmagcirc=permute(Bmagcirc,[2,3,1]);     % dimension circular permutation
+end
+clearvars Bmagcirc;
+
+%%% Visualise trap: 3D B-isosurfaces
 hfig_btrap_cent_3d=plot_B_3d(btrap,Bmag_trap,XYZ_trap);
 
-% % 1D B-profiles
-% hfig_bmag_1d=figure();
-% axisstr={'X','Y','Z'};
-% linestyle={'-','--',':'};
-% p=[];
-% for ii=1:3
-%     hold on;
-%     % shift coord to approximate trap center
-%     p(ii)=plot(1e3*(xyz_trap{ii}-trap_cent(ii)),1e4*B_trap_1d{ii},...
-%         'LineStyle',linestyle{ii},'LineWidth',1.5,...
-%         'DisplayName',axisstr{ii});
-% end
-% box on;
-% xlabel('Displacement [mm]');
-% ylabel('$B$ [G]');
-% lgd=legend(p);
-% title(lgd,sprintf('(%0.2g,%0.2g,%0.2g) [mm]',1e3*xyz0_approx(:)));
+% display evaluated trap centre
+figure(hfig_btrap_cent_3d);
+scatter3(1e3*trap_cent(1),1e3*trap_cent(2),1e3*trap_cent(3),...
+    'Marker','o','MarkerFaceColor','r','MarkerEdgeColor','none',...
+    'SizeData',30,'DisplayName','Trap centre');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%% approximate trap centre (evaluated grid)
-% [B0_approx,I0_approx]=min(Bmag(:));
-% xyz0_approx=cellfun(@(x) x(I0_approx),XYZ);
-% II0_approx=zeros(1,3);        % this is ordered in YXY
-% [II0_approx(1),II0_approx(2),II0_approx(3)]=ind2sub(size(Bmag),I0_approx);
-
-% %%% B profile in X,Y,Z line profile
-% B_1d=cell(3,1);     % 1D line-profile of magnetic field potential [T]
-% idxcirc=[1,2,3];
-% Bmagcirc=Bmag;      % temporary copy
-% for ii=1:3
-%     B_1d{ii}=Bmagcirc(:,II0_approx(idxcirc(2)),II0_approx(idxcirc(3)));
-%     idxcirc=circshift(idxcirc,-1);
-%     Bmagcirc=permute(Bmagcirc,[2,3,1]);     % dimension circular permutation 
-% end
-% clearvars Bmagcirc;
-% 
-% % plot
-% hfig_bmag_1d=figure();
-% axisstr={'X','Y','Z'};
-% linestyle={'-','--',':'};
-% p=[];
-% for ii=1:3
-%     hold on;
-%     % shift coord to approximate trap center
-%     p(ii)=plot(1e3*(xyz{ii}-xyz0_approx(ii)),1e4*B_1d{ii},...
-%         'LineStyle',linestyle{ii},'LineWidth',1.5,...
-%         'DisplayName',axisstr{ii});
-% end
-% box on;
-% xlabel('Displacement [mm]');
-% ylabel('$B$ [G]');
-% lgd=legend(p);
-% title(lgd,sprintf('(%0.2g,%0.2g,%0.2g) [mm]',1e3*xyz0_approx(:)));
-
-%%% approximate trap frequency (evaluated grid)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Visualise B-1D: 1D B-profiles
+hfig_bmag_1d=figure();
+axisstr={'X','Y','Z'};
+linestyle={'-','--',':'};
+p=[];
+for ii=1:3
+    hold on;
+    % shift coord to approximate trap center
+    p(ii)=plot(1e3*(xyz_trap{ii}-trap_cent(ii)),1e4*B_trap_1d{ii},...
+        'LineStyle',linestyle{ii},'LineWidth',1.5,...
+        'DisplayName',axisstr{ii});
+end
+box on;
+xlabel('Displacement [mm]');
+ylabel('$B$ [G]');
+lgd=legend(p);
+title(lgd,sprintf('(%0.2g,%0.2g,%0.2g) [mm]',1e3*trap_cent(:)));
 
 %% End of code
 t_end=toc(t_start);
