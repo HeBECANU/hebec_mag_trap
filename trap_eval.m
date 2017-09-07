@@ -1,5 +1,6 @@
-%%% Evaluate B field for a trap
 function [Bmag,Bout]=trap_eval(trap,x,y,z)
+% [Bmag,Bout]=trap_eval(trap,x,y,z)
+% Evaluate B field for a trap
 % Bmag is an array (same size as x,y,z)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
 %

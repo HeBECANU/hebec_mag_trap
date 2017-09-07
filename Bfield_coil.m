@@ -1,7 +1,8 @@
-%%% B field calculator for single coil (located at origin, pointing Z-axis)
 function Bout=Bfield_coil(R,I,x,y,z)
+% Bout = Bfield_coil(R, I, x, y, z)
+% B field calculator for single coil (located at origin, pointing Z-axis)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
-%
+
 
 % physical constants
 mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]

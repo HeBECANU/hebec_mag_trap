@@ -1,5 +1,8 @@
-% array element-wise sum of squares
 function SSQ=esumsqr(varargin)
+% Element-wise sum of squares for arrays
+% SSQ = esumsqr(A1,A2,...)
+%
+
 nVarargs=nargin;    % number of variable arg inputs (all)
 
 % Input error checking:
