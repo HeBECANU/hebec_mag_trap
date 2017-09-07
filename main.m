@@ -14,7 +14,7 @@ t_start=tic;
 % [x] set up to biQUIC dimension - Ross
 % [] Voltage to current conversion
 % [] characterise potential
-%   [] isosurfaces on B magnitude
+%   [x] isosurfaces on B magnitude
 %   [] trap frequency
 
 %% Config grid
@@ -26,7 +26,7 @@ xyz=cell(3,1);
 % xyz{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
 % xyz{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
 % xyz{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
-
+% 
 %%% MICRO
 xyz{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
 xyz{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
@@ -152,19 +152,6 @@ btrap=[btrap,bias];
 %%% Trap magnetic field calculation
 [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% EDIT - bias incorporated in trap definition, vector field packaged in a
-% single cell-array output (see Bfield_coil.m and trap_eval.m)
-% 
-% % apply bias field (nuller; spatially uniform)
-% % http://dx.doi.org/10.1063/1.2472600
-% Bxx=Bxx+Bbias(1);
-% Byy=Byy+Bbias(2);
-% Bzz=Bzz+Bbias(3);
-% 
-% Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %% Plot
 % config
 nBisosurf=5;
@@ -204,7 +191,7 @@ ylabel('Y [mm]');
 zlabel('Z [mm]');
 
 %%% Coils
-% NOTE: coil widths are not to true scale!
+% NOTE: coil widths in plot are not to true scale!
 % unit ring
 nnring=100;
 phi=linspace(0,2*pi,nnring);

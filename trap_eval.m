@@ -3,7 +3,6 @@ function [Bmag,Bout]=trap_eval(trap,x,y,z)
 % Bmag is an array (same size as x,y,z)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
 %
-% EDIT - [Bmag,Bxx,Byy,Bzz]=trap_eval(trap,x,y,z)
 
 % trap configuration
 ncomps=numel(trap);
@@ -33,8 +32,6 @@ for ii=1:ncomps
             end
             
             % call the coil calculator
-%             [Bxyz_this{1},Bxyz_this{2},Bxyz_this{3}]=Bfield_coil(R,I,xyz_tf{:});
-%             % EDIT
             Bxyz_this=Bfield_coil(R,I,xyz_tf{:});
             
         case 'uniform'
@@ -57,12 +54,5 @@ for ii=1:ncomps
     end
 end
 % get B field vector components
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% EDIT
-% Bxx=Bout{1};
-% Byy=Bout{2};
-% Bzz=Bout{3};
-% Bmag=sqrt(Bxx.^2+Byy.^2+Bzz.^2);     % absolute magnetic field strength [T]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Bmag=sqrt(esumsqr(Bout{:}));     % absolute magnetic field strength [T]
 end
