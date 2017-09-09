@@ -7,19 +7,8 @@ clear all;
 t_start=tic;
 
 % TODO:
-% [x] reverse transform mesghrid [xx,yy,zz] in trap coord to evaluate 
-%   similarly ordered (TT,RR,ZZ) vectors for each unique coil
-% [x] evaluate B from each coil in trap coord
-% [x] sum B - total B field
-% [x] set up to biQUIC dimension - Ross
-% [x] characterise potential
-%   [x] isosurfaces on B magnitude
-%   [x] trap frequency
 % [] Voltage to current conversion
 % [] experiment params
-% [] package into a user friendly function
-%   [x] trap generator
-%   [x] trap (currents) --> trap freq, trap centre
 
 verbose=1;
 
@@ -43,63 +32,14 @@ XYZ=cell(3,1);
 % permute the 3D array so that indexing goes x-y-z
 XYZ=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ,'UniformOutput',false);     
 
-%% Scenario 1: a single coil
-% % config
-% R_coil{1}=10e-3;    % coil radius [m]
-% I_coil{1}=1;        % coil current [A]
-% ori_coil{1}=[0,0,0];           % coil orientation - Euler angles
-% pos_coil{1}=[0,0,0];           % coil centre position (x,y,z)
-% 
-% %%% Build trap as a struct array of components
-% ncomps=numel(R_coil);
-% objtype=cell(1,ncomps);
-% objparam=cell(1,ncomps);
-% objtype(:)={'coil'};    % all coils!
-% for ii=1:ncomps
-%     objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
-% end
-% % create trap
-% btrap=struct('type',objtype,'param',objparam);
-% 
-% %%% Trap magnetic field calculation
-% [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
-
-%% Scenario 2: anti-Helmholtz with 2 coils
-% %%% config
-% % coil 1
-% R_coil{1}=10e-3;    % coil radius [m]
-% I_coil{1}=-1;        % coil current [A]
-% ori_coil{1}=[0,0,0];           % coil orientation - Euler angles
-% pos_coil{1}=[0,0,-4e-3];           % coil centre position (x,y,z)
-% 
-% % coil 2
-% R_coil{2}=10e-3;    % coil radius [m]
-% I_coil{2}=1;        % coil current [A]
-% ori_coil{2}=[0,0,0];           % coil orientation - Euler angles
-% pos_coil{2}=[0,0,4e-3];           % coil centre position (x,y,z)
-% 
-% %%% Build trap as a struct array of components
-% ncomps=numel(R_coil);
-% objtype=cell(1,ncomps);
-% objparam=cell(1,ncomps);
-% objtype(:)={'coil'};    % all coils!
-% for ii=1:ncomps
-%     objparam{ii}={R_coil{ii},I_coil{ii},pos_coil{ii},ori_coil{ii}};
-% end
-% btrap=struct('type',objtype,'param',objparam);
-% 
-% %%% Trap magnetic field calculation
-% [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
-
-%% Scenario 3: BiQUIC
+%% Build BiQUIC trap
 Iquad=1;
 Ishunt=1.5;
 Bbias=1e-4*[1,0,0];     % external bias field [T] (uniform assumption)
 
-btrap=biquic_trap(Iquad,Ishunt,Bbias);
+btrap=biquic_trap(Iquad,Ishunt,Bbias);  % build biquic
 
-%%% Trap magnetic field calculation
-[Bmag,Bxyz]=trap_eval(btrap,XYZ{:});
+[Bmag,Bxyz]=trap_eval(btrap,XYZ{:});    % calculate magnetic field (macro summary)
 
 %% Trap visualisation - B-isosurfaces
 hfig_btrap=plot_B_3d(btrap,Bmag,XYZ);
