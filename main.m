@@ -12,10 +12,15 @@ t_start=tic;
 % [x] evaluate B from each coil in trap coord
 % [x] sum B - total B field
 % [x] set up to biQUIC dimension - Ross
-% [] Voltage to current conversion
-% [] characterise potential
+% [x] characterise potential
 %   [x] isosurfaces on B magnitude
-%   [] trap frequency
+%   [x] trap frequency
+% [] Voltage to current conversion
+% [] experiment params
+% [] package into a user friendly function
+%   [] trap generator
+%   [] trap (currents) --> trap freq, trap centre
+
 
 %% Config grid
 ngrid=50;          % 50 - med; 300 - very fine;
@@ -196,7 +201,7 @@ idxcirc=[1,2,3];
 Bmagcirc=Bmag_trap;      % temporary copy
 for ii=1:3
     B_trap_1d{ii}=Bmagcirc(:,II0(idxcirc(2)),II0(idxcirc(3)))';     % 1xNi array 
-    idxcirc=circshift(idxcirc,-1);
+    idxcirc=circshift(idxcirc,[-1,0]);
     Bmagcirc=permute(Bmagcirc,[2,3,1]);     % dimension circular permutation
 end
 clearvars Bmagcirc;
