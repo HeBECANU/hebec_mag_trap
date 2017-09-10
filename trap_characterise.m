@@ -134,6 +134,9 @@ end
 
 
 %% Collate all figs
-H={hfig_btrap_cent_3d, hfig_bmag_1d, hfig_trap_freq};
+H={};
+if verbose>0
+    H={hfig_btrap_cent_3d, hfig_bmag_1d, hfig_trap_freq};
+end
 
 end

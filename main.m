@@ -10,43 +10,70 @@ t_start=tic;
 % [] Voltage to current conversion
 % [] experiment params
 
-verbose=1;
+%% Config
+%%% Flags
+verbose=0;          % graphical output
 
-%% Config grid
-ngrid=50;          % 50 - med; 300 - very fine;
+solve_3D=1;         % solve full 3D vector B-field (takes a while)
+solve_trapchar=1;   % characterise trap params including freq and center
 
-% grid in trap centered ref frame
-xyz=cell(3,1);
-%%% MACRO
-xyz{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
-xyz{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
-xyz{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
-
-% %%% MICRO
-% xyz{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
-% xyz{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
-% xyz{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
-
-XYZ=cell(3,1);
-[XYZ{1},XYZ{2},XYZ{3}]=meshgrid(xyz{:});    % meshgrid
-% permute the 3D array so that indexing goes x-y-z
-XYZ=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ,'UniformOutput',false);     
-
-%% Build BiQUIC trap
+%%% magneitc trap
 Iquad=1;
 Ishunt=1.5;
 Bbias=1e-4*[1,0,0];     % external bias field [T] (uniform assumption)
 
+%%% 3D grid trap B-field
+if solve_3D>0
+    ngrid=50;          % 50 - med; 300 - very fine;
+    
+    % grid in trap centered ref frame
+    xyz=cell(3,1);
+    %%% MACRO
+    xyz{1}=linspace(-20e-3,20e-3,ngrid);      % x-vect
+    xyz{2}=linspace(-20e-3,20e-3,ngrid);      % y-vect
+    xyz{3}=linspace(-20e-3,20e-3,ngrid);      % z-vect
+    
+    % %%% MICRO
+    % xyz{1}=linspace(-1e-3,1e-3,ngrid);      % x-vect
+    % xyz{2}=linspace(-1e-3,1e-3,ngrid);      % y-vect
+    % xyz{3}=linspace(-1e-3,1e-3,ngrid);      % z-vect
+    
+    XYZ=cell(3,1);
+    [XYZ{1},XYZ{2},XYZ{3}]=meshgrid(xyz{:});    % meshgrid
+    % permute the 3D array so that indexing goes x-y-z
+    XYZ=cellfun(@(YXZ) permute(YXZ,[2,1,3]),XYZ,'UniformOutput',false);
+end
+
+%% Build BiQUIC trap
 btrap=biquic_trap(Iquad,Ishunt,Bbias);  % build biquic
 
-[Bmag,Bxyz]=trap_eval(btrap,XYZ{:});    % calculate magnetic field (macro summary)
+%% Solve B-field for trap in 3D
+% initialise
+Bmag=NaN;
+Bxyz=NaN;
+hfig_btrap=NaN;
 
-%% Trap visualisation - B-isosurfaces
-hfig_btrap=plot_B_3d(btrap,Bmag,XYZ);
+if solve_3D>0
+    % 3D B-field
+    [Bmag,Bxyz]=trap_eval(btrap,XYZ{:});    % calculate magnetic field (macro summary)
+    
+    %%% visualise
+    % 3D B-isosurfaces
+    if verbose>0
+        hfig_btrap=plot_B_3d(btrap,Bmag,XYZ);
+    end
+end
 
 %% characterise trap
-% evaluate trap center, 1D trap potential, trap frequencies
-[f0,trap_cent,H]=trap_characterise(btrap,verbose);
+% initialise
+f0=NaN;
+trap_cent=NaN;
+H_trap=NaN;
+
+if solve_trapchar>0
+    % evaluate trap center, 1D trap potential, trap frequencies
+    [f0,trap_cent,H_trap]=trap_characterise(btrap,verbose);
+end
 
 %% End of code
 t_end=toc(t_start);
