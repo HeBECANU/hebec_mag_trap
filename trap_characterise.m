@@ -1,4 +1,4 @@
-function [f0,trap_cent,H]=trap_characterise(btrap,verbose)
+function [f0,trap_cent,H]=trap_characterise(btrap,x0,verbose)
 % Evaluates trap frequencies and center
 %
 % [f0,cent]=trap_characterise(btrap,verbose)
@@ -8,6 +8,7 @@ function [f0,trap_cent,H]=trap_characterise(btrap,verbose)
 % H is a cell array - handle to figures: {trap_3d, trap_1d, trap_freq}
 %
 % btrap is the trap object to characterise
+% x0 is the initial guess for trap minimum [m]
 % verbose: set to >0 for graphics
 %
 
@@ -18,7 +19,8 @@ function [f0,trap_cent,H]=trap_characterise(btrap,verbose)
 % find X to minimise $Bmag$ from trap_eval(btrap,X,0,0) - from symmetry
 % initial guess param X~0.1 [mm]
 % NOTE: x_cent solve in mm scale (function domain scaled to order of unity)
-[x_cent,B_cent]=fminsearch(@(x) trap_eval(btrap,1e-3*x,0,0),0.1);
+% x0=1e-3*18.5/2;     % initial estimate for trap centre (middle of two coils)
+[x_cent,B_cent]=fminsearch(@(x) trap_eval(btrap,1e-3*x,0,0),1e3*x0);
 trap_cent=[1e-3*x_cent,0,0];    % mm-->m evaluated trap centre [m]
 
 %%% Get B field near trap centre
@@ -95,9 +97,11 @@ end
 
 
 %% Evaluate magnetic trap potential (1d: x-y-z)
-% TODO - U_B± \propto mu_He * (±)Bmag (for weak(strong)-field seeking state)
-const_prop=1;       % TODO
-U_B_1d=cellfun(@(x) const_prop*x,B_trap_1d,'UniformOutput',false);
+% TODO - U_B± = mu_He * (±)Bmag (for weak(strong)-field seeking state)
+mu_Bohr=9.274e-24;  % Bohr magneton [J/T]
+mu_He=mu_Bohr;      % magnetic moment of 4He* 2^3S_1
+k_UB=mu_He;         % TODO
+U_B_1d=cellfun(@(x) k_UB*x,B_trap_1d,'UniformOutput',false);
 
 
 %% Trap frequency
@@ -109,7 +113,7 @@ d2U=cellfun(@(x)diff(x,2),U_B_1d,'UniformOutput',false);    % 2nd order DIFFEREN
 dx=cellfun(@(x)diff(x),xyz_trap0,'UniformOutput',false);    % 1st ord DIFF in displacement
 
 % evaluate trap frequency (harmonic)
-m_He=1;     % TODO
+m_He=6.6465e-27;     % mass of 4-helium [kg]
 f_trap=cellfun(@(D2Y,DX)(2*pi)*sqrt((D2Y./(DX(1:end-1).^2))/m_He),d2U,dx,'UniformOutput',false);     % trap frequency in [Hz]
 
 f0=cellfun(@(x)mean(x),f_trap);     % mean trap frequency around trap centre [Hz]

@@ -32,16 +32,17 @@ Nturnquad=10;
 
 pitch_coil=0.5e-3;
 
+% BiQUIC paper
 disp_ah=17e-3;      % AH separation
 disp_qs=18.5e-3;    % Quad-shunt separation
+% % From A.G. Manning PhD thesis
+% disp_ah=9e-3;      % AH separation
+% disp_qs=17e-3;    % Quad-shunt separation
 
-% Iquad=1;
-% Ishunt=1.5;
 Iquad=Iq;
 Ishunt=Ish;
 
 % Trap bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
-% Bbias=1e-4*[1,0,0];     % external bias field [T] (uniform assumption)
 
 %%% Build trap
 % Quadrupole - ref
