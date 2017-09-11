@@ -24,10 +24,9 @@ Vshunt=10;
 % Vshunt=linspace(0,1,10);
 
 k_v2i=1;    % conversion factor for control V [V] to I [A] at coils
-% TODO - currents in BiQUIC isn't actually constructed like this...
 Iquad=k_v2i*Vquad;
-Ishunt=k_v2i*Vshunt;    % TODO - this coil labelled "BIAS"
-Bbias=1e-4*[0,0,0];     % external bias field [T] (uniform assumption)
+Ibias=k_v2i*Vshunt;    % TODO - calculate bias current properly
+Bext=1e-4*[0,0,0];     % external bias field [T] (uniform assumption)
 
 %%% 3D grid trap B-field
 if solve_3D>0
@@ -52,11 +51,11 @@ if solve_3D>0
 end
 
 % %% Create meshgrid of trap configs
-% [IQ,IS]=meshgrid(Iquad,Ishunt);
-% I_biquic=[IQ(:),IS(:)]';
+% [IQ,IB]=meshgrid(Iquad,Ibias);
+% I_biquic=[IQ(:),IB(:)]';
 
 %% Build BiQUIC trap
-btrap=biquic_trap(Iquad,Ishunt,Bbias);  % build biquic
+btrap=biquic_trap(Iquad,Ibias,Bext);  % build biquic
 
 %% characterise trap
 % initialise
