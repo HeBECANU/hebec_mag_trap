@@ -2,13 +2,21 @@
 % D K Shin
 % refer to https://doi.org/10.1103/PhysRevA.35.1535 for expressions used
 
+% B M Henson
 clear all;
 
 t_start=tic;
 
+% Known Bugs/Errors
+% trap freq not reproduced
+
+
 % TODO:
-% [] Voltage to current conversion
-% [] experiment params
+% cell arrays used inapropriately, slows down code a lot
+% Voltage to current conversion
+% experiment params
+
+% DONE:
 
 %% Config
 %%% Flags
