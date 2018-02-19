@@ -1,15 +1,15 @@
-function Bout=Bfield_coil(R,I,x,y,z)
+function Bout=Bfield_coil(R,I,xyz)
 % Bout = Bfield_coil(R, I, x, y, z)
 % B field calculator for single coil (located at origin, pointing Z-axis)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
 
-
+global const
 % physical constants
-mu_0=4*pi*1e-7;     % vacuum permeability [Tm/A]
+mu_0=const.mu0;    
 
 % cartesian to cylindrical
 % theta-rad-z
-[TT,RR,ZZ]=cart2pol(x,y,z);
+[TT,RR,ZZ]=cart2pol(xyz(:,1),xyz(:,2),xyz(:,3));
 
 % evaluate the analytic magnetic field solution
 % https://doi.org/10.1103/PhysRevA.35.1535
@@ -22,6 +22,6 @@ Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
 Brr(~isfinite(Brr))=NaN;
 
 % Reverse transform cyl to original Cart coord (trap centered ref)
-Bout=cell(3,1);
-[Bout{:}]=pol2cart(TT,Brr,Bzz);
+
+[Bout(:,1),Bout(:,2),Bout(:,3)]=pol2cart(TT,Brr,Bzz);
 end

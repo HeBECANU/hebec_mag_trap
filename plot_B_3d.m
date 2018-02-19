@@ -1,4 +1,4 @@
-function H=plot_B_3d(btrap,Bmag,XYZ)
+function H=plot_B_3d(btrap,Bmag,xyz_list)
 % Plot
 % H = plot_B_3d(btrap, Bmag, XYZ)
 %
@@ -8,7 +8,7 @@ nBisosurf=5;
 
 %%% Parse input
 % grid limits in x,y,z
-xyz_lim=cellfun(@(x)[min(x(:)),max(x(:))],XYZ,'UniformOutput',false);
+xyz_lim=cellfun(@(x)[min(x(:)),max(x(:))],xyz_list,'UniformOutput',false);
 xyz_lim=vertcat(xyz_lim{:});
 
 %%% Magnetic field
@@ -28,7 +28,7 @@ cc=viridis(nBisosurf);
 p={};
 pp=[];
 for ii=1:nBisosurf
-    p{ii}=isosurface(1e3*XYZ{1},1e3*XYZ{2},1e3*XYZ{3},Bmag,Bisoval(ii));
+    p{ii}=isosurface(1e3*xyz_list{1},1e3*xyz_list{2},1e3*xyz_list{3},Bmag,Bisoval(ii));
     pp(ii)=patch(p{ii},'FaceColor',cc(ii,:),'EdgeColor','none','FaceAlpha',0.15,...
         'DisplayName',sprintf('%0.1g',1e4*Bisoval(ii)));
 end
