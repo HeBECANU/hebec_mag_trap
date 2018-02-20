@@ -1,4 +1,4 @@
-function [f0,trap_cent,B_cent]=trap_characterise(btrap,x0,verbose)
+function [f0,trap_cent,B_cent]=trap_characterise(btrap,x0,solve_trapdepth,verbose)
 % Evaluates trap frequencies and center
 %
 % [f0,cent]=trap_characterise(btrap,verbose)
@@ -69,10 +69,152 @@ dudx(n,6)=polyval(polyder(polyder(polyder(polyder(polyder(polyder(poly)))))),0);
 end
 fprintf('trap curvature {%f , %f, %f} G/cm \n',dudx(1,1)*1e2,dudx(2,1)*1e2,dudx(3,1)*1e2)
 fprintf('trap curvature {%f , %f, %f} G/cm^2 \n',dudx(1,2),dudx(2,2),dudx(3,2))
-trap_freq=sqrt(const.mub*dudx(:,2)'/const.mhe)/(2*pi);
+trap_freq=sqrt(2*const.mub*dudx(:,2)'/const.mhe)/(2*pi);
 fprintf('trap freq {%f , %f, %f} \n',trap_freq(1),trap_freq(2),trap_freq(3))
 fprintf('trap ratio {%f , %f}={y/x,z/x} \n',trap_freq(2)/trap_freq(1),trap_freq(3)/trap_freq(1))
 
+
+
+
+if solve_trapdepth
+    %find the trap depth by finding when the thresholded B feild map
+    %changes the number of connected regions
+    %can do it in 2 or 3d
+    %this method is messy but it works
+    %should implement a ridge following method like
+    %https://carter.princeton.edu/wp-content/uploads/sites/316/2015/08/EAC-047.pdf
+    %for now just sample the potential in 3d and find the point that the
+    %number of regions change
+    
+
+    high_pot=B_cent+30*1e-4;
+    low_pot=B_cent+2*1e-4;
+    thresh=1e-5*1e-4; %convergence threshold
+    dimensions=3;
+    
+    if dimensions==2
+        ngrid=500;          % 50 - med; 300 - very fine;
+        % grid in trap centered ref frame
+        xyz_grid=[];
+        xpts=trap_cent(1)+linspace(-10e-3,20e-3,ngrid);
+        zpts=trap_cent(3)+linspace(-8e-3,8e-3,ngrid);
+        [xyz_grid(:,:,:,1),xyz_grid(:,:,:,3)]=...
+        meshgrid(xpts,zpts);    % meshgrid
+
+        xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
+        [Bmag_list,~]=trap_eval(btrap,xyz_list);
+        Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
+
+        
+        figure(5)
+        set(gcf,'Color',[1 1 1]);
+        clf;
+        bw_grid=Bmag_grid<low_pot;
+        imagesc((xpts-trap_cent(1))*1e3,(zpts-trap_cent(3))*1e3,flipud(bw_grid))
+        colormap(gray)
+        set(gca,'YDir','normal')
+        title(['Connected Regions B=',num2str(low_pot*1e4,'%2.3f'),'G'])
+        xlabel('x(mm)')
+        ylabel('y(mm)')
+        regions=bwconncomp(bw_grid,4);
+        base_regions=regions.NumObjects;
+        pause(3)
+        n=1;
+        found_pot=1;
+        while found_pot
+            mid_pot=(high_pot+low_pot)/2;
+            figure(6)
+            set(gcf,'Color',[1 1 1]);
+            clf;
+            bw_grid=Bmag_grid<mid_pot; %
+            imagesc((xpts-trap_cent(1))*1e3,(zpts-trap_cent(3))*1e3,flipud(bw_grid))
+            xlabel('x(mm)')
+            ylabel('y(mm)')
+            title(['Connected Regions B=',num2str(mid_pot*1e4,'%2.3f'),'G'])
+            colormap(gray)
+            set(gca,'YDir','normal')
+            regions=bwconncomp(bw_grid,4);
+            delt_regions=regions.NumObjects-base_regions;
+            if delt_regions<0
+                high_pot=mid_pot;
+            elseif delt_regions>0
+                low_pot=mid_pot;
+            elseif delt_regions==0
+                low_pot=mid_pot;    
+            end
+            fprintf('trap depth evaluation %i at %2.3fG,delta regions %i, delta B %2.3E G \n',n,mid_pot*1e4,delt_regions,(high_pot-low_pot)*1e4)
+            pause(0.01)
+            if (high_pot-low_pot)<thresh 
+                found_pot=0;
+            end 
+            n=n+1;
+        end
+    elseif dimensions==3
+        ngrid=300;          % 50 - med; 300 - very fine;
+        % grid in trap centered ref frame
+        xpts=trap_cent(1)+linspace(-10e-3,20e-3,ngrid);
+        ypts=trap_cent(2)+linspace(-5e-3,5e-3,ngrid);
+        zpts=trap_cent(3)+linspace(-8e-3,8e-3,ngrid);
+        
+        xyz_grid=[];
+        [xyz_grid(:,:,:,1),xyz_grid(:,:,:,2),xyz_grid(:,:,:,3)]=meshgrid(xpts,ypts,zpts);    % meshgrid
+        xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
+        fprintf('trap depth calculating grid \n')
+        [Bmag_list,~]=trap_eval(btrap,xyz_list);
+        
+        Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
+        
+        figure(5)
+        clf;
+        bw_grid=Bmag_grid<low_pot;
+        isosurface(1e3*xyz_grid(:,:,:,1),1e3*xyz_grid(:,:,:,2),1e3*xyz_grid(:,:,:,3),bw_grid,[0.5]);
+        colormap(gray)
+        set(gcf,'Color',[1 1 1]);
+        title(['Connected Regions B=',num2str(low_pot*1e4,'%2.3f'),'G'])
+        xlabel('x(mm)')
+        ylabel('y(mm)')
+        zlabel('z(mm)')
+        regions=bwconncomp(bw_grid,6);
+        base_regions=regions.NumObjects;
+        fprintf('trap depth base evaluation at %2.3fG, regions %i\n',low_pot*1e4,base_regions)
+        pause(3)
+        n=1;
+        found_pot=1;
+        while found_pot
+            mid_pot=(high_pot+low_pot)/2;
+            bw_grid=Bmag_grid<mid_pot; %
+            figure(6)
+            clf;
+            set(gcf,'Color',[1 1 1]);
+            isosurface(1e3*xyz_grid(:,:,:,1),1e3*xyz_grid(:,:,:,2),1e3*xyz_grid(:,:,:,3),bw_grid,[0.5]);
+            xlabel('x(mm)')
+            ylabel('y(mm)')
+            zlabel('z(mm)')
+            title(['Connected Regions B=',num2str(mid_pot*1e4,'%2.3f'),'G'])
+            colormap(gray)
+            regions=bwconncomp(bw_grid,6);
+            delt_regions=regions.NumObjects-base_regions;
+            if delt_regions<0
+                high_pot=mid_pot;
+            elseif delt_regions>0
+                low_pot=mid_pot;
+            elseif delt_regions==0
+                low_pot=mid_pot;    
+            end
+            fprintf('trap depth evaluation %i at %2.3fG,delta regions %i, delta B %2.3E G \n',n,mid_pot*1e4,delt_regions,(high_pot-low_pot)*1e4)
+            pause(0.01)
+            if (high_pot-low_pot)<thresh 
+                found_pot=0;
+            end 
+            n=n+1;
+        end
+        
+        
+    end
+    
+    trap_depth=mid_pot;
+    fprintf('Trap depth found to be %2.3fG (%2.3f MHz)(%2.3EK)',trap_depth*1e4,trap_depth*const.b_freq*1e-6,(2*trap_depth*const.mub)*2/const.kb)
+end
 % Y slice
 % points=100;
 % y_points=trap_cent-[zeros(points,1),linspace(1E-6,-1E-6,100)', zeros(points,1)];

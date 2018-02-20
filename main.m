@@ -5,10 +5,6 @@
 
 %creates a structure bfeild that specifies the currents
 
-%should be
-%brtap{N}.[type,current
-
-
 
 % Known Bugs/Errors
 % trap freq not reproduced
@@ -19,12 +15,17 @@
 %reproduce numbers from https://www.sciencedirect.com/science/article/pii/S0030401806009680?via%3Dihub
 %currently trap freq way higher than reported there 
 %factor out plot code
-
+    %add options for various 2d slices
+%add in gravitational potential
+%find trap depth
+    %to start with using the connected region method
+    %then using the saddle following method
 
 
 % DONE:
 %code runs on arrays
-
+%check that the Energy of a He* atom in a B feild is E=2*ub*B  
+%looks to be the case http://iopscience.iop.org.virtual.anu.edu.au/article/10.1088/1464-4266/5/2/360/pdf
 
 t_start=tic;
 % ------------------START USER Config--------------
@@ -32,11 +33,12 @@ t_start=tic;
 verbose=1;          % graphical output
 
 solve_3D=0;         % solve full 3D vector B-field (takes a while)
-solve_trapchar=1;   % characterise trap params including freq and center
 solve_2D=1;
+solve_trapchar=1;   % characterise trap params including freq and center
+solve_trapdepth=0;  %VERY SLOW and a can require fidling to get working ok
 
 %%% mag trap
-v_quad=8;%2.4%3.4
+v_quad=3.4;%2.4%3.4 %3.4 used in 'normal trap'
 v_shunt=0;  
 Bext=1e-4*[0.0,0,0];     % external bias field [T] (uniform assumption)
 
@@ -51,7 +53,7 @@ btrap=biquic_trap(v_quad,v_shunt,Bext);  % build biquic
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies
     % NOTE: there are multiple points of potential minimia
-    [f0,trap_cent,B_cent]=trap_characterise(btrap,-0e-3,verbose);
+    [f0,trap_cent,B_cent]=trap_characterise(btrap,-0e-3,solve_trapdepth,verbose);
 end
 
 
@@ -127,12 +129,12 @@ end
 
 %%% 2D grid trap B-field
 if solve_2D
-    ngrid=500;          % 50 - med; 300 - very fine;
+    ngrid=100;          % 50 - med; 300 - very fine;
     % grid in trap centered ref frame
     xyz_grid=[];
     [xyz_grid(:,:,:,1),xyz_grid(:,:,:,3)]=...
     meshgrid(trap_cent(1)+linspace(-20e-3,20e-3,ngrid),...
-             trap_cent(3)+linspace(-5e-3,5e-3,ngrid));    % meshgrid
+             trap_cent(3)+linspace(-7e-3,7e-3,ngrid));    % meshgrid
 
     xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
     [Bmag_list,Bxyz]=trap_eval(btrap,xyz_list);
