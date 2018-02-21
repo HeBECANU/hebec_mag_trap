@@ -79,8 +79,11 @@ fprintf('trap ratio {%f , %f}={y/x,z/x} \n',trap_freq(2)/trap_freq(1),trap_freq(
 if solve_trapdepth
     %find the trap depth by finding when the thresholded B feild map
     %changes the number of connected regions
+    %uses the bisection method to find this potential
+    %needs to have a well sampled grid (to see the other minima), a good
+    %region of interest and decent gess of the inital potential
     %can do it in 2 or 3d
-    %this method is messy but it works
+    %this method is a little messy but it works
     %should implement a ridge following method like
     %https://carter.princeton.edu/wp-content/uploads/sites/316/2015/08/EAC-047.pdf
     %for now just sample the potential in 3d and find the point that the
@@ -88,20 +91,20 @@ if solve_trapdepth
     
 
     high_pot=B_cent+30*1e-4;
-    low_pot=B_cent+2*1e-4;
-    thresh=1e-5*1e-4; %convergence threshold
-    dimensions=3;
+    low_pot=B_cent+2*1e-5;
+    thresh=1e-5*1e-5; %convergence threshold
+    dimensions=2;
     
     if dimensions==2
-        ngrid=500;          % 50 - med; 300 - very fine;
+        ngrid=1000;          % 50 - med; 300 - very fine;
         % grid in trap centered ref frame
         xyz_grid=[];
         xpts=trap_cent(1)+linspace(-10e-3,20e-3,ngrid);
         zpts=trap_cent(3)+linspace(-8e-3,8e-3,ngrid);
         [xyz_grid(:,:,:,1),xyz_grid(:,:,:,3)]=...
         meshgrid(xpts,zpts);    % meshgrid
-
         xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
+        fprintf('trap depth calculating grid \n')
         [Bmag_list,~]=trap_eval(btrap,xyz_list);
         Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
 
@@ -143,7 +146,7 @@ if solve_trapdepth
                 low_pot=mid_pot;    
             end
             fprintf('trap depth evaluation %i at %2.3fG,delta regions %i, delta B %2.3E G \n',n,mid_pot*1e4,delt_regions,(high_pot-low_pot)*1e4)
-            pause(0.01)
+            pause(0.005)
             if (high_pot-low_pot)<thresh 
                 found_pot=0;
             end 
@@ -153,15 +156,15 @@ if solve_trapdepth
         ngrid=300;          % 50 - med; 300 - very fine;
         % grid in trap centered ref frame
         xpts=trap_cent(1)+linspace(-10e-3,20e-3,ngrid);
-        ypts=trap_cent(2)+linspace(-5e-3,5e-3,ngrid);
+        ypts=trap_cent(2)+linspace(-6e-3,6e-3,ngrid);
         zpts=trap_cent(3)+linspace(-8e-3,8e-3,ngrid);
         
         xyz_grid=[];
         [xyz_grid(:,:,:,1),xyz_grid(:,:,:,2),xyz_grid(:,:,:,3)]=meshgrid(xpts,ypts,zpts);    % meshgrid
         xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
-        fprintf('trap depth calculating grid \n')
+        fprintf('trap depth start calculating grid \n')
         [Bmag_list,~]=trap_eval(btrap,xyz_list);
-        
+        fprintf('trap depth done calculating grid \n')
         Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
         
         figure(5)

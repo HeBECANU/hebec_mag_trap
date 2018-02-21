@@ -36,6 +36,7 @@ solve_3D=0;         % solve full 3D vector B-field (takes a while)
 solve_2D=1;
 solve_trapchar=1;   % characterise trap params including freq and center
 solve_trapdepth=0;  %VERY SLOW and a can require fidling to get working ok
+solve_stpt=1;
 
 %%% mag trap
 v_quad=3.4;%2.4%3.4 %3.4 used in 'normal trap'
@@ -53,7 +54,7 @@ btrap=biquic_trap(v_quad,v_shunt,Bext);  % build biquic
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies
     % NOTE: there are multiple points of potential minimia
-    [f0,trap_cent,B_cent]=trap_characterise(btrap,-0e-3,solve_trapdepth,verbose);
+    [f0,trap_cent,B_cent]=trap_characterise(btrap,5e-3,solve_trapdepth,verbose);
 end
 
 
@@ -129,12 +130,12 @@ end
 
 %%% 2D grid trap B-field
 if solve_2D
-    ngrid=100;          % 50 - med; 300 - very fine;
+    ngrid=600;          % 50 - med; 300 - very fine;
     % grid in trap centered ref frame
     xyz_grid=[];
     [xyz_grid(:,:,:,1),xyz_grid(:,:,:,3)]=...
-    meshgrid(trap_cent(1)+linspace(-20e-3,20e-3,ngrid),...
-             trap_cent(3)+linspace(-7e-3,7e-3,ngrid));    % meshgrid
+    meshgrid(trap_cent(1)+linspace(-5e-3,15e-3,ngrid),...
+             trap_cent(3)+linspace(-6e-3,6e-3,ngrid));    % meshgrid
 
     xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
     [Bmag_list,Bxyz]=trap_eval(btrap,xyz_list);
@@ -151,9 +152,10 @@ if solve_2D
     set(gcf,'Color',[1 1 1]);
     pause(0.001);
     
+    figure(13)
+    contour((xyz_grid(:,:,:,1)-trap_cent(1))*1e3,(xyz_grid(:,:,:,3)-trap_cent(3))*1e3,Bmag_grid*1e4,300)
     
     
-
     xyz_grid=zeros(ngrid,ngrid,1,3);
     [xyz_grid(:,:,:,1),xyz_grid(:,:,:,2)]=...
     meshgrid(trap_cent(1)+linspace(-20e-3,20e-3,ngrid),...
@@ -164,7 +166,7 @@ if solve_2D
 
     figure(4)
     clf;
-    h=surf((xyz_grid(:,:,:,1)-trap_cent(1))*1e3,(xyz_grid(:,:,:,2)-trap_cent(3))*1e3,Bmag_grid*1e4);
+    h=surf((xyz_grid(:,:,:,1)-trap_cent(1))*1e3,(xyz_grid(:,:,:,2)-trap_cent(3))*1e3,Bmag_grid*1e4,'facealpha',0.9);
     colormap(viridis())
     set(h,'LineStyle','none')
     box on;
@@ -172,13 +174,60 @@ if solve_2D
     ylabel('Y (mm)');
     zlabel('B (Gauss)');
     set(gcf,'Color',[1 1 1]);
-    
+    pause(0.001)
 end
 
 
+if solve_stpt>0
+    %2d derivative grid
+    ngrid=600;          % 50 - med; 300 - very fine;
+    delt=1e-6;
+    % grid in trap centered ref frame
+    xyz_grid=[];
+    [xyz_grid(:,:,:,1),xyz_grid(:,:,:,3)]=...
+    meshgrid(trap_cent(1)+linspace(-5e-3,15e-3,ngrid),...
+             trap_cent(3)+linspace(-6e-3,6e-3,ngrid));    % meshgrid
 
+    xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
+    Bgrad_list=dtrapdx(btrap,xyz_list,delt);
+    Bgrad_grid=reshape(Bgrad_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
+    figure(12)
+    clf;
+    h=surf((xyz_grid(:,:,:,1)-trap_cent(1))*1e3,(xyz_grid(:,:,:,3)-trap_cent(3))*1e3,Bgrad_grid,'facealpha',0.9);
+    colormap(viridis())
+    set(h,'LineStyle','none')
+    box on;
+    xlabel('X (mm)');
+    ylabel('Z (mm)');
+    zlabel('RSS Grad. (T/m) ');
+    set(gcf,'Color',[1 1 1]);
+    pause(0.001);
 
+    figure(14)
+    contour((xyz_grid(:,:,:,1)-trap_cent(1))*1e3,(xyz_grid(:,:,:,3)-trap_cent(3))*1e3,Bgrad_grid,300)
+    
+    if solve_stpt>1
+    st_pts=[];
+    num_pts=10;
+    range=[[-2,17];[-6,6]]*1e-3;
+    x0=[range(1,1)+rand(1,num_pts)'*(range(1,2)-range(1,1)),range(2,1)+rand(1,num_pts)'*(range(2,2)-range(2,1))];
+    for n=1:num_pts
+        options=optimset('MaxFunEvals',300,'MaxIter',300,'TolFun',1e-10);
+    st_pts(n,:)=fminsearch(@(x) dtrapdx(btrap,[[x(1),0,x(2)]],1e-10),x0(n,:),options);
+    end
+    mask=range(1,1)<st_pts(:,1) & st_pts(:,1)<range(1,2) & range(2,1)<st_pts(:,2) & st_pts(:,2)<range(2,2);
+    st_pts=st_pts(mask,:);
+    fprintf('surviving points %i out of %i',size(st_pts,1),num_pts)
 
+    hold on
+    scatter3((st_pts(:,1)-trap_cent(1))*1e3,(st_pts(:,2)-trap_cent(3))*1e3,dtrapdx(btrap,[st_pts(:,1),zeros(size(st_pts,1),1),st_pts(:,2)],delt),20,'k','filled')
+    hold off
+    end
+end
+
+%mask=st_pts
+%st_pts=st_pts(sqrt(sum(st_pts.^2,2))<rmax,:);
+%fprintf('surviving points %i out of %i',size(st_pts,1),num_pts)
 
 
 %% Solve B-field for trap in 3D
