@@ -22,8 +22,10 @@ function btrap=biquic_trap(v_quad,v_shunt,Bext)
 amp_per_volt_quad=4.17;
 amp_per_volt_shunt=1.46;
 
-Iquad=amp_per_volt_quad*v_quad-amp_per_volt_shunt*v_shunt;
-Ibias=amp_per_volt_quad*v_quad;
+Iquad=amp_per_volt_quad*v_quad;
+Ibias=amp_per_volt_quad*v_quad+amp_per_volt_shunt*v_shunt;
+
+
 
 
 %% configure coil params
@@ -31,8 +33,8 @@ pitch_coil=0.5e-3;
 
 
 % coil diameters
-Dquad=14e-3+pitch_coil; %
-Dbias=14e-3+pitch_coil;
+Dquad=13.94e-3+2*0.7e-3+pitch_coil; %
+Dbias=12e-3+2*0.7e-3+pitch_coil;
 
 % coil radii
 Rquad=Dquad/2;
@@ -42,8 +44,19 @@ Rbias=Dbias/2;
 Nturnbias=18;
 Nturnquad=10;
 
-disp_ah=16.01e-3;      % AH separation (across the chamber)
-disp_qb=18.5e-3;    % Quad-bias separation (in the plane of the bi-quic)
+%measurments
+
+disp_ah=21.5e-3;      % AH separation (across the chamber)
+disp_qb=19.43e-3;    % Quad-bias separation (in the plane of the bi-quic)
+
+
+res_quad=49.3e-3;
+res_baias=71.8e-3;
+
+%manual playing
+%disp_ah=16.01e-3;      % AH separation (across the chamber)
+%disp_qb=18.5e-3;    % Quad-bias separation (in the plane of the bi-quic)
+
 
 %disp_ah=16.75e-3;      % AH separation (across the chamber)
 %disp_qb=18.5e-3;    % Quad-bias separation (in the plane of the bi-quic)
@@ -51,6 +64,10 @@ disp_qb=18.5e-3;    % Quad-bias separation (in the plane of the bi-quic)
 % BiQUIC paper
 %disp_ah=17e-3;      % AH separation (across the chamber)
 %disp_qb=18.5e-3;    % Quad-bias separation (in the plane of the bi-quic)
+% coil diameters
+%Dquad=14e-3+pitch_coil; %
+%Dbias=14e-3+pitch_coil;
+
 % % From A.G. Manning PhD thesis
 % disp_ah=9e-3;      % AH separation
 % disp_qb=17e-3;    % Quad-bias separation
@@ -59,6 +76,11 @@ disp_qb=18.5e-3;    % Quad-bias separation (in the plane of the bi-quic)
 %Ibias=Ib;
 
 % Trap external bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
+
+
+fprintf('quad current %2.2f A, power %2.1f W\n',Iquad,Iquad^2*res_quad)
+fprintf('bais current %2.2f A, power %2.1f W\n',Ibias,Ibias^2*res_baias)
+fprintf('Total power %2.1f W\n',Iquad^2*res_quad+Ibias^2*res_baias)
 
 %%% Build trap
 % Quadrupole - ref

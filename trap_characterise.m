@@ -95,12 +95,17 @@ if solve_trapdepth
     thresh=1e-5*1e-5; %convergence threshold
     dimensions=2;
     
+    
+    
+    
+    
+    
     if dimensions==2
         ngrid=1000;          % 50 - med; 300 - very fine;
         % grid in trap centered ref frame
         xyz_grid=[];
         xpts=trap_cent(1)+linspace(-10e-3,20e-3,ngrid);
-        zpts=trap_cent(3)+linspace(-8e-3,8e-3,ngrid);
+        zpts=trap_cent(3)+linspace(-10e-3,10e-3,ngrid);
         [xyz_grid(:,:,:,1),xyz_grid(:,:,:,3)]=...
         meshgrid(xpts,zpts);    % meshgrid
         xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
@@ -146,7 +151,7 @@ if solve_trapdepth
                 low_pot=mid_pot;    
             end
             fprintf('trap depth evaluation %i at %2.3fG,delta regions %i, delta B %2.3E G \n',n,mid_pot*1e4,delt_regions,(high_pot-low_pot)*1e4)
-            pause(0.005)
+            pause(0.5)
             if (high_pot-low_pot)<thresh 
                 found_pot=0;
             end 
@@ -216,7 +221,7 @@ if solve_trapdepth
     end
     
     trap_depth=mid_pot;
-    fprintf('Trap depth found to be %2.3fG (%2.3f MHz)(%2.3EK)',trap_depth*1e4,trap_depth*const.b_freq*1e-6,(2*trap_depth*const.mub)*2/const.kb)
+    fprintf('Trap depth found to be %2.3fG (%2.3f MHz)(%2.3EK)\n',trap_depth*1e4,trap_depth*const.b_freq*1e-6,(2*trap_depth*const.mub)*2/const.kb)
 end
 % Y slice
 % points=100;
