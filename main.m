@@ -31,7 +31,7 @@
 %finding net trap osc period with amplitude
     %use integration of potential landscape
 %should estimate ideal numerical derivative step size with https://en.wikipedia.org/wiki/Numerical_differentiation#Practical_considerations_using_floating_point_arithmetic    
-global const  
+
 
 
 % DONE:
@@ -61,6 +61,7 @@ Bext=1e-4*[0.0,0,0];     % external bias field [T] (uniform assumption)
 %%Add dependencies
 addpath('Colormaps') 
 constants
+global const  
 % Build BiQUIC trap
 btrap=biquic_trap(v_quad,v_shunt,Bext);  % build biquic
 

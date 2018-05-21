@@ -18,7 +18,11 @@ const.b_freq=2.802*1e6*1e4; %hz/T
 const.mhe = 1.66*10^-27*4.002;%(*helium mass*)
 
 %enviormental
-const.g0 = 9.80665 ;
+const.g0 =9.7960207-78e-8;
+% (-35 17.0', 149 6.8) alt=560.78m
+% https://d28rz98at9flks.cloudfront.net/15167/Rep_261.pdf 
+%with correction of 78e-8 from http://www.publish.csiro.au/ex/ASEG2007ab149 applied
+%9.796 cbr approx grav at (-35.283103 , 149.112634) from http://ddfe.curtin.edu.au/gravitymodels/GGMplus/data/ga/S40E145.ga.png
 
 %customary
 const.a0 = 0.529*10^-10;%(*bohr radius*)
