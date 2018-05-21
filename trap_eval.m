@@ -5,6 +5,7 @@ function [Bmag,Bout]=trap_eval(trap,xyz_list)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
 %
 
+
 % trap configuration
 ncomps=numel(trap);
 Bout=repmat([0,0,0],[size(xyz_list,1),1]);

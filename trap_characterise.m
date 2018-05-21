@@ -11,6 +11,8 @@ function [f0,trap_cent,B_cent]=trap_characterise(btrap,x0,solve_trapdepth,verbos
 % verbose: set to >0 for graphics
 %
 
+
+
 %% Numbers
 
 %% Trap center
@@ -37,47 +39,14 @@ end
 %%% 1D Bmag profile - X,Y,Z line profile
 %X slice
 %select a small range
-points=1000;
-range=[[1,-1];[1,-1];[1,-1]]*1e-4;
-labels=['x','y','z'];
-figure(1)
-set(gcf,'Color',[1 1 1]);
-clf;
-for n=1:3
-xyz_points=zeros(points,3);
-xyz_points(:,n)=linspace(range(n,1),range(n,2),points)';
-xyz_points=trap_cent+xyz_points;
-[bmag,bvec]=trap_eval(btrap,xyz_points);   
-bmag=bmag-B_cent;
-subplot(3,1,n)
-deltx=xyz_points(:,n)-trap_cent(n);
-plot(deltx,bmag) %
-xlabel(labels(n))
-ylabel('Bfeild')
+trap_freq = mag_profile_1d(btrap,B_cent,trap_cent);
 
-poly=polyfit(deltx,bmag,6);
-hold on
-plot(deltx,polyval(poly,deltx),'r')
-hold off
-%hold on
-dudx(n,1)=polyval(polyder(poly),0);
-dudx(n,2)=polyval(polyder(polyder(poly)),0);
-dudx(n,3)=polyval(polyder(polyder(polyder(poly))),0);
-dudx(n,4)=polyval(polyder(polyder(polyder(polyder(poly)))),0);
-dudx(n,5)=polyval(polyder(polyder(polyder(polyder(polyder(poly))))),0);
-dudx(n,6)=polyval(polyder(polyder(polyder(polyder(polyder(polyder(poly)))))),0);
-end
-fprintf('trap curvature {%f , %f, %f} G/cm \n',dudx(1,1)*1e2,dudx(2,1)*1e2,dudx(3,1)*1e2)
-fprintf('trap curvature {%f , %f, %f} G/cm^2 \n',dudx(1,2),dudx(2,2),dudx(3,2))
-trap_freq=sqrt(2*const.mub*dudx(:,2)'/const.mhe)/(2*pi);
-fprintf('trap freq {%f , %f, %f} \n',trap_freq(1),trap_freq(2),trap_freq(3))
-fprintf('trap ratio {%f , %f}={y/x,z/x} \n',trap_freq(2)/trap_freq(1),trap_freq(3)/trap_freq(1))
 
 
 
 
 if solve_trapdepth
-    %find the trap depth by finding when the thresholded B feild map
+    %find the trap depth by finding when the thresholded B field map
     %changes the number of connected regions
     %uses the bisection method to find this potential
     %needs to have a well sampled grid (to see the other minima), a good
@@ -89,16 +58,10 @@ if solve_trapdepth
     %for now just sample the potential in 3d and find the point that the
     %number of regions change
     
-
     high_pot=B_cent+30*1e-4;
     low_pot=B_cent+2*1e-5;
     thresh=1e-5*1e-5; %convergence threshold
     dimensions=2;
-    
-    
-    
-    
-    
     
     if dimensions==2
         ngrid=1000;          % 50 - med; 300 - very fine;
@@ -112,8 +75,7 @@ if solve_trapdepth
         fprintf('trap depth calculating grid \n')
         [Bmag_list,~]=trap_eval(btrap,xyz_list);
         Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
-
-        
+      
         figure(5)
         set(gcf,'Color',[1 1 1]);
         clf;
