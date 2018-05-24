@@ -1,16 +1,27 @@
-function stationary_points(btrap,trap_cent,solve_stpt)
-
+function st_pts=stationary_points(btrap,trap_cent,solve_stpt)
+    global const
     fprintf('starting derivative plot \n')
     %plot_range=[[-2,12];[-8.5,8.5]]*1e-3; %x,z
-     plot_range=[[-2,12];[-8.5,8.5]]*1e-3; %x,z
-    min_cluster_range=1e-5;
+     plot_range=[[-10,12];[-8.5,8.5]]*1e-3; %x,z
+    min_cluster_range=8e-5;
     st_cluster_range=1e-5; %saddle pt cluster range
     zero_feild_thresh=1e-7; %1uT is when we say it is a zero crossing minima
     %2d derivative grid
     ngrid=100;          % 50 - med; 300 - very fine;
-    delt=1e-10;
-
     
+    %adaptive step size
+    %http://www.uio.no/studier/emner/matnat/math/MAT-INF1100/h10/kompendiet/kap11.pdf
+    %second deriv delt p227
+    paren = @(x, varargin) x(varargin{:});
+    delt=1e-5;
+    fval=trap_eval(btrap,[1,1,1]*1e-5);
+    fppval=num_hessian(@(x) trap_eval(btrap,x),[1,1,1]*1e-5,1e-10);
+    fppfun=@(y) paren(num_hessian(@(x) trap_eval(btrap,x),y,delt),1);
+    fppppfun=paren(num_hessian(@(x) fppfun(x),[1,1,1]*1e-5,delt),1);
+    
+    delt=2*sqrt(eps*abs(fval/fppfun([1,1,1]*1e-5)));
+    delt2=(36*eps*abs(fval))^(1/4)*(abs(fppppfun))^(-1/4);
+
     
     % grid in trap centered ref frame
     plot_range=[plot_range(1,:)+trap_cent(1);plot_range(2,:)+trap_cent(3)];%center on trap cent
@@ -49,17 +60,17 @@ function stationary_points(btrap,trap_cent,solve_stpt)
         fprintf('starting optimization on potential landscape \n')
         %find the minimum points of the potential landscape
         min_pts=[];
-        num_pts=30; 
+        num_pts=40; 
         %rng(123456) %for protoryping
         x0=[plot_range(1,1)+rand(1,num_pts)'*(plot_range(1,2)-plot_range(1,1)),plot_range(2,1)+rand(1,num_pts)'*(plot_range(2,2)-plot_range(2,1))];
-        for n=1:num_pts
+        parfor n=1:num_pts
             options=optimset('MaxFunEvals',1e5,'MaxIter',1e5,'TolFun',1e-10);
             min_pts(n,:)=fminsearch(@(x) trap_eval(btrap,[[x(1),0,x(2)]]),x0(n,:),options);
         end
         %filter the points that have stayed in the range
         mask=min_pts(:,1)>plot_range(1,1) & min_pts(:,1)<plot_range(1,2) & min_pts(:,2)>plot_range(2,1) & min_pts(:,2)<plot_range(2,2);
-        st_pts=min_pts(mask,:);
-        fprintf('surviving points %i out of %i \n',size(st_pts,1),num_pts)
+        min_pts=min_pts(mask,:);
+        fprintf('surviving points %i out of %i \n',size(min_pts,1),num_pts)
         %custer the points
         % now cluster points
         %break this clustering out as a function once 3d
@@ -90,11 +101,11 @@ function stationary_points(btrap,trap_cent,solve_stpt)
     if solve_stpt>2
         fprintf('starting optimization on derivative landscape \n')        
         st_pts=[];
-        num_pts=30;
+        num_pts=40;
         %rng(123456) %for protoryping
         x0=[plot_range(1,1)+rand(1,num_pts)'*(plot_range(1,2)-plot_range(1,1)),plot_range(2,1)+rand(1,num_pts)'*(plot_range(2,2)-plot_range(2,1))];
-        for n=1:num_pts
-            options=optimset('MaxFunEvals',1e4,'MaxIter',1e4,'TolFun',1e-5);
+        parfor n=1:num_pts
+            options=optimset('MaxFunEvals',1e4,'MaxIter',1e4,'TolFun',1e-9);
             st_pts(n,:)=fminsearch(@(y) sum(abs(num_grad(@(x) trap_eval(btrap,x),[[y(1),0,y(2)]],delt)),2),x0(n,:),options);
             %PSoptions = optimoptions(@patternsearch,'Display','iter','TolFun',1e-10,'TolMesh',1e-10);
             %[st_pts(n,1:2),st_pts(n,3)] = patternsearch(@(y)  num_grad(@(x) trap_eval(btrap,x),y,delt),x0(n,:),[],[],[],[],plot_range(:,1),plot_range(:,2),PSoptions);
@@ -113,7 +124,7 @@ function stationary_points(btrap,trap_cent,solve_stpt)
         fprintf('removing %i points that are close to minima \n',sum(mask))
         st_pts=st_pts(~mask,:);
         
-        H_list=num_hessian(@(x) trap_eval(btrap,x),[st_pts(:,1),zeros(size(st_pts,1),1),st_pts(:,2)],delt);
+        H_list=num_hessian(@(x) trap_eval(btrap,x),[st_pts(:,1),zeros(size(st_pts,1),1),st_pts(:,2)],delt2);
         mask=false(1,size(st_pts,1));
         for i=1:size(H_list,3) %find the determinacy of each of these hessians
             eh=eig(H_list(:,:,i));
@@ -145,7 +156,13 @@ function stationary_points(btrap,trap_cent,solve_stpt)
 
 
         for i=1: size(st_pts,1)
-            fprintf('Trap saddle found %2.3fG (%2.3f MHz)(%2.3E K)\n',st_pts(i,3)*1e4,st_pts(i,3)*const.b_freq*1e-6,(2*st_pts(i,3)*const.mub)*2/const.kb)
+            fprintf('Trap saddle found %2.3fG, %2.3fMHz(abs) %2.3f MHz, %2.3EJ, %2.3Emm/s, %2.3E K (rel)\n',...
+                [st_pts(i,3)*1e4,...
+                st_pts(i,3)*const.b_freq*1e-6,...
+                (st_pts(i,3)-min_pts(1,3))*const.b_freq*1e-6,...
+                2*(st_pts(i,3)-min_pts(1,3))*const.mub,...
+                 1e3*sqrt(2*(st_pts(i,3)-min_pts(1,3))*const.mub*2/const.mhe),...
+                (2*(st_pts(i,3)-min_pts(1,3))*const.mub)*2/const.kb])
         end
         
         figure(14)
