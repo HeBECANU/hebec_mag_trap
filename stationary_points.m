@@ -2,7 +2,7 @@ function st_pts=stationary_points(btrap,trap_cent,solve_stpt)
     global const
     fprintf('starting derivative plot \n')
     %plot_range=[[-2,12];[-8.5,8.5]]*1e-3; %x,z
-     plot_range=[[-10,12];[-8.5,8.5]]*1e-3; %x,z
+     plot_range=[[-15,12];[-8.5,8.5]]*1e-3; %x,z
     min_cluster_range=8e-5;
     st_cluster_range=1e-5; %saddle pt cluster range
     zero_feild_thresh=1e-7; %1uT is when we say it is a zero crossing minima

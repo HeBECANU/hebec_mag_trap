@@ -54,11 +54,22 @@ solve_trapdepth=0;  %VERY SLOW and a can require fiddling to get working ok
 solve_stpt=3;
 solve_hessian=0;
 
-%%% mag trap
-trap_config.v_quad=0.14; %3.4 used in 'normal trap'
-trap_config.v_shunt=0.87;  
+%% mag trap
+trap_config.v_quad=0.25; %3.4 used in 'normal trap'
+trap_config.v_shunt=0.75; 
+
 trap_config.Bext=1e-4*[0.0,0,0];     % external bias field [T] (uniform assumption)
 
+% trap_config.v_quad=3.4; %3.4 used in 'normal trap'
+% trap_config.v_shunt=0.0;  
+
+%ML extreme trap
+% trap_config.v_quad=0.14; %3.4 used in 'normal trap'
+% trap_config.v_shunt=0.87; 
+
+%ML damping trap
+%trap_config.v_quad=0.25; %3.4 used in 'normal trap'
+%trap_config.v_shunt=0.75; 
 %------------- END USER Config-------------------------
 
 %%Add dependencies
@@ -67,21 +78,21 @@ constants
 global const  
 % Build BiQUIC trap
 btrap=biquic_trap([],trap_config);  % build biquic
-
+anal_out=[];
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies
     % NOTE: there are multiple points of potential minimia
-    [f0,trap_cent,B_cent]=trap_characterise(btrap,5e-3,solve_trapdepth,verbose);
+    anal_out=trap_characterise(anal_out,btrap,5e-3,solve_trapdepth,verbose);
 end
-
+anal_out.trap_cent
 %%% 2D grid trap B-field
 if solve_2D
-    trap_profile_2d(btrap,trap_cent)
+    trap_profile_2d(btrap,anal_out.trap_cent)
 end
 
 %%% 3D grid trap B-field
 if solve_3D
-    visualise_3D(btrap,trap_cent)
+    visualise_3D(btrap,anal_out.trap_cent)
 end
 
 
@@ -137,7 +148,7 @@ end
 
 
 if solve_stpt>0
-    st_pts=stationary_points(btrap,trap_cent,solve_stpt);
+    st_pts=stationary_points(btrap,anal_out.trap_cent,solve_stpt);
 end
 
 

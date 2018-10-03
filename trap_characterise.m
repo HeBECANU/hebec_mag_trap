@@ -1,4 +1,4 @@
-function [f0,trap_cent,B_cent]=trap_characterise(btrap,x0,solve_trapdepth,verbose)
+function anal_out=trap_characterise(anal_out,btrap,x0,solve_trapdepth,verbose)
 % Evaluates trap frequencies and center
 %
 % [f0,cent]=trap_characterise(btrap,verbose)
@@ -10,7 +10,7 @@ function [f0,trap_cent,B_cent]=trap_characterise(btrap,x0,solve_trapdepth,verbos
 % x0 is the initial guess for trap minimum [m]
 % verbose: set to >0 for graphics
 %
-
+%[f0,trap_cent,B_cent]
 
 
 %% Numbers
@@ -25,11 +25,11 @@ function [f0,trap_cent,B_cent]=trap_characterise(btrap,x0,solve_trapdepth,verbos
 % x0=1e-3*18.5/2;     % initial estimate for trap centre (middle of two coils) 
 options = optimset('TolX',1e-8);
 [x_cent,B_cent]=fminsearch(@(x) trap_eval(btrap,[1e-3*x,0,0]),1e3*x0,options);
-trap_cent=[1e-3*x_cent,0,0];    % mm-->m evaluated trap centre [m]
+anal_out.trap_cent=[1e-3*x_cent,0,0];    % mm-->m evaluated trap centre [m]
 global const
  
 fprintf('found trap minimum\nB=%2.3fG (%2.3fMHz) \nat {%f,%f,%f} mm\n',...
-    1e4*B_cent,1e-6*B_cent*const.b_freq,trap_cent(1)*1e3,trap_cent(2)*1e3,trap_cent(3)*1e3)
+    1e4*B_cent,1e-6*B_cent*const.b_freq,anal_out.trap_cent(1)*1e3,anal_out.trap_cent(2)*1e3,anal_out.trap_cent(3)*1e3)
 
 if B_cent<1e-10
     warning('===============the trap minimum is close to zero=============')
@@ -39,7 +39,7 @@ end
 %%% 1D Bmag profile - X,Y,Z line profile
 %X slice
 %select a small range
-trap_freq = mag_profile_1d(btrap,B_cent,trap_cent);
+anal_out = mag_profile_1d(anal_out,btrap,B_cent,anal_out.trap_cent);
 
 
 
@@ -281,6 +281,6 @@ end
 %     lgd=legend(p);
 % end
 % 
-f0=[trap_freq(1),trap_freq(2),trap_freq(3)];
+
 
 end
