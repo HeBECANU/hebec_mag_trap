@@ -1,13 +1,22 @@
-function btrap=biquic_trap(v_quad,v_shunt,Bext)
+function btrap=biquic_trap(btrap,trap_config)
 % btrap = biquic_trap(Iq, Ib, Bext)
-%
-% btrap is biquic magnetic trap object created by parameters defined in the
-% inputs.
-%
-% Iq, Ib are current [Amp]
-% Bext is 1x3 array of bias magnetic field at the trap (Bx,By,Bz) [T]
-%
-%
+% Calculates the correct elements for a biquic trap and appends them to the btrap structure.
+
+% Input
+%   btrap array of structures which sepcify the magnetic feild
+%       btrap(n).type string,element specifier 'coil' or 'uniform
+%       btrap(n).param cell array of coil parameters
+%           for type='coil' {Radius,Current,[x,y,z],[0,0,0]} forth element reserved for angle
+%           for type='uniform' {[Bx,By,Bz]}
+%   trap_config.v_quad  scalar value, of the DAQ voltage for the quad current [volts]
+%   trap_config.v_shunt
+%   trap_config.Bext a 1x3 vector of bias magnetic field applied by the nuller (Bx,By,Bz) [T]
+
+% Output
+%   btrap array of structures which sepcify the magnetic feild. Appended to by this code.
+% 
+
+
 %%% Biquic geometry
 % Quad: 14 mm Dia x 10 turns
 % Bias (Ioffe): 14 mm x 18 turns 
@@ -18,13 +27,13 @@ function btrap=biquic_trap(v_quad,v_shunt,Bext)
 % 
 
 %%Current
-
 amp_per_volt_quad=4.17;
 amp_per_volt_shunt=1.46;
 
-Iquad=amp_per_volt_quad*v_quad;
-Ibias=amp_per_volt_quad*v_quad+amp_per_volt_shunt*v_shunt;
+Iquad=amp_per_volt_quad*trap_config.v_quad;
+Ibias=amp_per_volt_quad*trap_config.v_quad+amp_per_volt_shunt*trap_config.v_shunt;
 
+%v_quad,v_shunt,Bext)
 
 
 
@@ -91,7 +100,7 @@ bias_coil.type='coil';
 bias_coil.param={Rbias,Ibias,[disp_qb,0,disp_ah/2],[0,0,0]};
 % Bias (nuller)
 extbias.type='uniform';
-extbias.param={Bext};
+extbias.param={trap_config.Bext};
 
 btrap=[];
 for ii=1:Nturnquad
