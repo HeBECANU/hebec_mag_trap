@@ -11,7 +11,7 @@ This code is to calculate the magnetic feild for a magnetic trap
  ![The sum of the absolute magnitudes of the jacobians](/plots/jacobian_xz.png "Jacobinan Landscape")
  
  
-##To Do
+## To Do
 - Add all open source contributions to the ack.
 - 3d minimizations
 - add in multiple potential sources
