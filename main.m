@@ -72,10 +72,14 @@ trap_config.Bext=1e-4*[0.0,0,0];     % external bias field [T] (uniform assumpti
 %trap_config.v_shunt=0.75; 
 %------------- END USER Config-------------------------
 
+%add all subfolders to the path
+this_folder = fileparts(which(mfilename));
+% Add that folder plus all subfolders to the path.
+addpath(genpath(this_folder));
+
 %%Add dependencies
-addpath('Colormaps') 
-constants
-global const  
+
+hebec_constants
 % Build BiQUIC trap
 btrap=biquic_trap([],trap_config);  % build biquic
 anal_out=[];
