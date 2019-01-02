@@ -1,3 +1,7 @@
+function [anal_out,btrap]=main(params)
+quad_val=params(3);
+shunt_val=params(1);
+x_bias=params(2);
 %% BiQUIC trap magnetic field calculator
 % D K Shin
 % refer to https://doi.org/10.1103/PhysRevA.35.1535 for expressions used
@@ -41,31 +45,31 @@
 %code runs on arrays
 %check that the Energy of a He* atom in a B feild is E=2*ub*B  
 %looks to be the case http://iopscience.iop.org.virtual.anu.edu.au/article/10.1088/1464-4266/5/2/360/pdf
-close all
+%close all
 t_start=tic;
 % ------------------START USER Config--------------
 %%% Flags
-verbose=1;          % graphical output
+verbose=0;          % graphical output
 
 solve_trapchar=1;   % characterise trap params including freq and center
-solve_2D=1;
+solve_2D=0;
 solve_3D=0;         % solve full 3D vector B-field (takes a while)
 solve_trapdepth=0;  %VERY SLOW and a can require fiddling to get working ok
-solve_stpt=3;
+solve_stpt=0;
 solve_hessian=0;
 
 %% mag trap
-trap_config.v_quad=0.25; %3.4 used in 'normal trap'
-trap_config.v_shunt=0.75; 
+trap_config.v_quad=quad_val; %3.4 used in 'normal trap' 14.178 A
+trap_config.v_shunt=shunt_val;%0.2 used in TO 
 
-trap_config.Bext=1e-4*[0.0,0,0];     % external bias field [T] (uniform assumption)
+trap_config.Bext=1e-4*[x_bias,0,0];     % external bias field [T] (uniform assumption)
 
 % trap_config.v_quad=3.4; %3.4 used in 'normal trap'
 % trap_config.v_shunt=0.0;  
 
 %ML extreme trap
-% trap_config.v_quad=0.14; %3.4 used in 'normal trap'
-% trap_config.v_shunt=0.87; 
+% trap_config.v_quad=5.7; %start of evap
+% trap_config.v_shunt=0;
 
 %ML damping trap
 %trap_config.v_quad=0.25; %3.4 used in 'normal trap'
@@ -163,3 +167,4 @@ t_end=toc(t_start);
 disp('-----------------------------------------------');
 fprintf('Total elapsed time (s): %7.1f\n',t_end);
 disp('===================ALL TASKS COMPLETED===================');
+end

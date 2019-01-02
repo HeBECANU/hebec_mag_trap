@@ -91,6 +91,10 @@ fprintf('quad current %2.2f A, power %2.1f W\n',Iquad,Iquad^2*res_quad)
 fprintf('bais current %2.2f A, power %2.1f W\n',Ibias,Ibias^2*res_baias)
 fprintf('Total power %2.1f W\n',Iquad^2*res_quad+Ibias^2*res_baias)
 
+btrap.power.quad=Iquad^2*res_quad;
+btrap.power.bais=Ibias^2*res_baias;
+btrap.power.total=Iquad^2*res_quad+Ibias^2*res_baias;
+
 %%% Build trap
 % Quadrupole - ref
 quad_coil.type='coil';
@@ -126,5 +130,8 @@ for ii=1:Nturnbias
     btrap=[btrap,bias_coil_temp];
 end
 btrap=[btrap,extbias];
-
+btrap(3).power={};
+btrap(1,1).power_quad=Iquad^2*res_quad;
+btrap(1,2).power_bias=Ibias^2*res_baias;
+btrap(1,3).power_total=Iquad^2*res_quad+Ibias^2*res_baias;
 end
