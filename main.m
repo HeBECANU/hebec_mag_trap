@@ -49,7 +49,7 @@ x_bias=params(2);
 t_start=tic;
 % ------------------START USER Config--------------
 %%% Flags
-verbose=0;          % graphical output
+verbose=1;          % graphical output
 
 solve_trapchar=1;   % characterise trap params including freq and center
 solve_2D=0;
