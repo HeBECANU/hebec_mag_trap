@@ -12,37 +12,31 @@ function anal_out=trap_characterise(anal_out,btrap,x0,solve_trapdepth,verbose)
 %
 %[f0,trap_cent,B_cent]
 
-
-%% Numbers
+global const
 
 %% Trap center
 % trap center: point of minimum B magnitude
-
 %%% Find trap center with current trap config
-% find X to minimise $Bmag$ from trap_eval(btrap,X,0,0) - from symmetry
-% initial guess param X~0.1 [mm]
-% NOTE: x_cent solve in mm scale (function domain scaled to order of unity)
-% x0=1e-3*18.5/2;     % initial estimate for trap centre (middle of two coils) 
+% find X to minimise $Bmag$ from trap_eval(btrap,x_vec) 
 options = optimset('TolX',1e-8);
-[x_cent,B_cent]=fminsearch(@(x) trap_eval(btrap,[1e-3*x,0,0]),1e3*x0,options);
-anal_out.trap_cent=[1e-3*x_cent,0,0];    % mm-->m evaluated trap centre [m]
-global const
+anal_out.trap_cen.pos=fminsearch(@(x) trap_eval(btrap,x),x0,options);
+
+%calculate the trap center field
+[anal_out.trap_cen.b_mag,anal_out.trap_cen.b_vec]=trap_eval(btrap,anal_out.trap_cen.pos);
  
 fprintf('found trap minimum\nB=%2.3fG (%2.3fMHz) \nat {%f,%f,%f} mm\n',...
-    1e4*B_cent,1e-6*B_cent*const.b_freq,anal_out.trap_cent(1)*1e3,anal_out.trap_cent(2)*1e3,anal_out.trap_cent(3)*1e3)
+    1e4*anal_out.trap_cen.b_mag,1e-6*anal_out.trap_cen.b_mag*const.b_freq,...
+    anal_out.trap_cen.pos*1e3)
 
-if B_cent<1e-10
-    warning('===============the trap minimum is close to zero=============')
+if anal_out.trap_cen.b_mag<1e-10 %this checks that the minimum is not too close to a zero crossing
+    warning('===============the trap minimum found is close to zero=============')
 end
 
 
 %%% 1D Bmag profile - X,Y,Z line profile
 %X slice
 %select a small range
-anal_out = mag_profile_1d(anal_out,btrap,B_cent,anal_out.trap_cent);
-
-
-
+anal_out = mag_profile_1d(anal_out,btrap);
 
 
 if solve_trapdepth
@@ -185,23 +179,6 @@ if solve_trapdepth
     trap_depth=mid_pot;
     fprintf('Trap depth found to be %2.3fG (%2.3f MHz)(%2.3EK)\n',trap_depth*1e4,trap_depth*const.b_freq*1e-6,(2*trap_depth*const.mub)*2/const.kb)
 end
-% Y slice
-% points=100;
-% y_points=trap_cent-[zeros(points,1),linspace(1E-6,-1E-6,100)', zeros(points,1)];
-% [ybmag,ybvec]=trap_eval(btrap,y_points);
-% ybmag=ybmag-B_cent;
-% plot(y_points(:,2),k_UB*ybmag)
-% 
-% 
-% Z slice
-% points=100;
-% z_points=trap_cent-[zeros(points,1), zeros(points,1),linspace(1E-6,-1E-6,100)'];
-% [zbmag,zbvec]=trap_eval(btrap,z_points);
-% zbmag=zbmag-B_cent;
-% plot(z_points(:,3),k_UB*zbmag)
-% end
-
-%sample the trap in x,y,z
 
 
 

@@ -1,4 +1,4 @@
-function visualise_3D(btrap,trap_cent)
+function visualise_3d(btrap,trap_cent)
 
     ngrid=100;          % 50 - med; 300 - very fine;
     % grid in trap centered ref frame

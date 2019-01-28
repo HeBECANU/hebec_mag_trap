@@ -1,4 +1,4 @@
-function Bout=Bfield_coil(R,I,xyz)
+function Bout=Bfield_loop(R,I,rot_vec,xyz)
 % Bout = Bfield_coil(R, I, x, y, z)
 % B field calculator for single coil (located at origin, pointing Z-axis)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
@@ -10,7 +10,8 @@ function Bout=Bfield_coil(R,I,xyz)
 %hack to get to work in parfor
 mu_0=1.2566370614*10^-6;
 
-
+rot_mat=rotationVectorToMatrix(rot_vec);
+xyz=xyz*rot_mat;
 % cartesian to cylindrical
 % theta-rad-z
 [TT,RR,ZZ]=cart2pol(xyz(:,1),xyz(:,2),xyz(:,3));

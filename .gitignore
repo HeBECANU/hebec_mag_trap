@@ -1,13 +1,7 @@
-*.zip*
-*.fig*
-*.swp*
-*.mat*
-*.dat*
-*.avi*
-*.jpg*
-*.pdf*
-*.eps*
-*.doc*
-*.html*
+# Windows default autosave extension
 *.asv
-*.log
+# Data files
+*.mat
+
+*.dat
+*.pdf
