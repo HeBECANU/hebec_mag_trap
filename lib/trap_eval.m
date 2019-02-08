@@ -26,7 +26,6 @@ for ii=1:ncomps
             rel_xyz=xyz_list-pos;
             % call the coil calculator
             Bxyz_this=Bfield_coil(R,I,rel_xyz);
-            
         case 'uniform'
             % uniform B field
             % params: {[Bx,By,Bz]}
