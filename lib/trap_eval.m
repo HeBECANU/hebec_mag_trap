@@ -7,30 +7,34 @@ function [Bmag,Bout]=trap_eval(trap,xyz_list)
 
 
 % trap configuration
-ncomps=numel(trap);
+ncomps=numel(trap.b_src);
 Bout=repmat([0,0,0],[size(xyz_list,1),1]);
 % evaluate B field from each component at the grid region
 for ii=1:ncomps
-    trap_element=trap(ii);
-    element_type=trap_element.type;
-    element_paramters=trap_element.param;
+    trap_elm=trap.b_src(ii); %for each element in the cell array of structs
+    elm_type=trap_elm.type;
+    elm_param=trap_elm.param;
     
     % evaluate B field for this object
-    switch element_type
-        case 'coil'
+    switch elm_type
+        case 'loop'
             % get coil param: {R, I, POS, ORI}            
-            R=element_paramters{1};
-            I=element_paramters{2};
-            pos=element_paramters{3};
+            R=elm_param.radius;
+            I=elm_param.current;
+            pos=elm_param.position;
+            rot_vec=elm_param.rot;
             %=param_this{4};
             rel_xyz=xyz_list-pos;
             % call the coil calculator
-            Bxyz_this=Bfield_coil(R,I,rel_xyz);
-            
+            Bxyz_this=Bfield_loop(R,I,rot_vec,rel_xyz);
+        case 'line'
+            error('not yet implemented')
+        case 'spiral'
+            error('not yet implemented')
         case 'uniform'
             % uniform B field
             % params: {[Bx,By,Bz]}
-            Bxyz_this=element_paramters{1};     % get the uniform B field vector
+            Bxyz_this=elm_param;     % get the uniform B field vector
         otherwise
             error('<TRAP>.type of %s is not recognised.',string(typethis));
     end

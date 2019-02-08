@@ -10,12 +10,25 @@ This code is to calculate the magnetic feild for a magnetic trap
   
  ![The sum of the absolute magnitudes of the jacobians](/plots/jacobian_xz.png "Jacobinan Landscape")
  
+ ## Bryce Done
+ -
  
 ## To Do
-- Add all open source contributions to the ack.
 - 3d minimizations
+- coherent output struct
+- more field sources
+  - Current line
+  - current spiral
+- Add all open source contributions to the ack.
+
 - add in multiple potential sources
   - gravity
   - optical
 - full spiral integeration
 - coil geometery ploting
+
+
+## Contributions
+This project would not have been possible without the many open source tools that it is based on.
+* ***John D'Errico*** [Adaptive Robust Numerical Differentiation](https://au.mathworks.com/matlabcentral/fileexchange/13490-adaptive-robust-numerical-differentiation)
+* ***Ander Biguri*** [Perceptually uniform colormaps](https://au.mathworks.com/matlabcentral/fileexchange/51986-perceptually-uniform-colormaps)

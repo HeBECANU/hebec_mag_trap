@@ -84,54 +84,63 @@ res_baias=71.8e-3;
 %Iquad=Iq;
 %Ibias=Ib;
 
-% Trap external bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
 
 
 fprintf('quad current %2.2f A, power %2.1f W\n',Iquad,Iquad^2*res_quad)
 fprintf('bais current %2.2f A, power %2.1f W\n',Ibias,Ibias^2*res_baias)
 fprintf('Total power %2.1f W\n',Iquad^2*res_quad+Ibias^2*res_baias)
-
+btrap={};
 btrap.power.quad=Iquad^2*res_quad;
 btrap.power.bais=Ibias^2*res_baias;
 btrap.power.total=Iquad^2*res_quad+Ibias^2*res_baias;
 
 %%% Build trap
 % Quadrupole - ref
-quad_coil.type='coil';
-quad_coil.param={Rquad,Iquad,[0,0,disp_ah/2],[0,0,0]};
+quad_coil=[];
+quad_coil.type='loop';
+quad_coil.param.radius=Rquad;
+quad_coil.param.current=Iquad;
+quad_coil.param.position=[0,0,disp_ah/2];
+quad_coil.param.rot=[0,0,0]; %angle of pointing in theta,phi
 % Shunt (Ioffe) - ref
-bias_coil.type='coil';
-bias_coil.param={Rbias,Ibias,[disp_qb,0,disp_ah/2],[0,0,0]};
-% Bias (nuller)
+bias_coil=[];
+bias_coil.type='loop';
+bias_coil.param.radius=Rbias;
+bias_coil.param.current=Ibias;
+bias_coil.param.position=[disp_qb,0,disp_ah/2];
+quad_coil.param.rot=[0,0,0]; %angle of pointing in theta,phi
+% Trap external bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
 extbias.type='uniform';
-extbias.param={trap_config.Bext};
+extbias.param=trap_config.Bext;
 
-btrap=[];
+btrap.b_src=[];
+btrap.b_src=extbias;
+
 for ii=1:Nturnquad
     quad_coil_temp=quad_coil;
     % shift by wire pitch
-    quad_coil_temp.param{3}=quad_coil_temp.param{3}+(ii-1)*[0,0,pitch_coil];
-    btrap=[btrap,quad_coil_temp];
+    quad_coil_temp.param.position=quad_coil_temp.param.position+(ii-1)*[0,0,pitch_coil];
+    btrap.b_src=[btrap.b_src,quad_coil_temp];
     
     % anti-helmholtz pair - mirror symmetry around Z
-    quad_coil_temp.param{2}=-1*quad_coil_temp.param{2};     % flip current dir
-    quad_coil_temp.param{3}=[1,1,-1].*quad_coil_temp.param{3};
-    btrap=[btrap,quad_coil_temp];
+    quad_coil_temp.param.current=-1*quad_coil_temp.param.current;     % flip current dir
+    quad_coil_temp.param.position=[1,1,-1].*quad_coil_temp.param.position; %flip position
+    btrap.b_src=[btrap.b_src,quad_coil_temp];
 end
 for ii=1:Nturnbias
     bias_coil_temp=bias_coil;
     % shift by wire pitch
-    bias_coil_temp.param{3}=bias_coil_temp.param{3}+(ii-1)*[0,0,pitch_coil];
-    btrap=[btrap,bias_coil_temp];
+    bias_coil_temp.param.position=bias_coil_temp.param.position+(ii-1)*[0,0,pitch_coil];
+    btrap.b_src=[btrap.b_src,bias_coil_temp];
     
     % anti-helmholtz pair - mirror symmetry around Z
-    bias_coil_temp.param{2}=-1*bias_coil_temp.param{2};   % flip current dir
-    bias_coil_temp.param{3}=[1,1,-1].*bias_coil_temp.param{3};
-    btrap=[btrap,bias_coil_temp];
+    bias_coil_temp.param.current=-1*bias_coil_temp.param.current;   % flip current dir
+    bias_coil_temp.param.position=[1,1,-1].*bias_coil_temp.param.position;
+    btrap.b_src=[btrap.b_src,bias_coil_temp];
 end
-btrap=[btrap,extbias];
-btrap(3).power={};
-btrap(1,1).power_quad=Iquad^2*res_quad;
-btrap(1,2).power_bias=Ibias^2*res_baias;
-btrap(1,3).power_total=Iquad^2*res_quad+Ibias^2*res_baias;
+
+btrap.power={};
+btrap.power.quad=Iquad^2*res_quad;
+btrap.power.bias=Ibias^2*res_baias;
+btrap.power.total=Iquad^2*res_quad+Ibias^2*res_baias;
 end

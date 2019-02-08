@@ -1,79 +1,10 @@
-% function [anal_out,btrap]=main(params)
-% quad_val=params(3);
-% shunt_val=params(1);
-% x_bias=params(2);
-%% BiQUIC trap magnetic field calculator
-% D K Shin
-% refer to https://doi.org/10.1103/PhysRevA.35.1535 for expressions used
-% B M Henson
+solve_trapchar=0;
 
-%creates a structure bfield that specifies the currents
-
-%features currently implemented
-%find trap depth 3 diffrent methods
-    %2d thresholding/region detection
-    %3d thresholding/region detection
-    %saddle point finder using opt of derivative landscape
-%plots in 2,3d
-%finds trap frequency in cartesian axis
-
-
-% Known Bugs/Errors
-% trap freq not reproduced
-%trap ratio not reproduced
-
-
-% TODO:
-%move st_point calculator to trap charaterize
-%change btrap from a vector of structures to a structure with cells
-%break out potential from B feild for future optical & grav potential
-%add in gravitational,optical potentials for hybrid trapping
-%reproduce numbers from https://www.sciencedirect.com/science/article/pii/S0030401806009680?via%3Dihub
-%currently trap freq way higher than reported there 
-%factor out plot code
-    %add options for various 2d slices
-
-%find principle axes for trap
-%more flexibility of orentation of mag cois
-%finding net trap osc period with amplitude
-    %use integration of potential landscape
-%should estimate ideal numerical derivative step size with https://en.wikipedia.org/wiki/Numerical_differentiation#Practical_considerations_using_floating_point_arithmetic    
-
-
-
-% DONE:
-%code runs on arrays
-%check that the Energy of a He* atom in a B feild is E=2*ub*B  
-%looks to be the case http://iopscience.iop.org.virtual.anu.edu.au/article/10.1088/1464-4266/5/2/360/pdf
-%close all
-t_start=tic;
-% ------------------START USER Config--------------
-%%% Flags
-verbose=1;          % graphical output
-
-solve_trapchar=1;   % characterise trap params including freq and center
-plot_2D=0;
-plot_3D=0;         % solve full 3D vector B-field (takes a while)
-solve_trapdepth=0;  %VERY SLOW and a can require fiddling to get working ok
-solve_stpt=0;
-solve_hessian=0;
-
-%% mag trap
-trap_config.v_quad=3.4; %3.4 used in 'normal trap' 14.178 A
-trap_config.v_shunt=0.2;%0.2 used in TO 
-
-trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform assumption)
-
-% trap_config.v_quad=3.4; %3.4 used in 'normal trap'
-% trap_config.v_shunt=0.0;  
-
-%ML extreme trap
-% trap_config.v_quad=5.7; %start of evap
-% trap_config.v_shunt=0;
-
-%ML damping trap
-%trap_config.v_quad=0.25; %3.4 used in 'normal trap'
-%trap_config.v_shunt=0.75; 
+plot_2d_opt.cen=[0,0,0.5];
+plot_2d_opt.rot=pi/2 * [0, 0, 0];
+plot_2d_opt.range=[[-2,2];
+                   [-2,2]];
+plot_2d_opt.zero_on_cen=false;              
 %------------- END USER Config-------------------------
 
 %add all subfolders to the path
@@ -83,7 +14,14 @@ addpath(genpath(this_folder));
 
 hebec_constants
 % Build BiQUIC trap
-btrap=biquic_trap([],trap_config);  % build biquic
+btrap=[];
+simple_loop.type='loop';
+simple_loop.param.radius=1;
+simple_loop.param.current=1;
+simple_loop.param.position=[0,0,0];
+simple_loop.param.rot=pi/2*[1,0,0];
+btrap.b_src=[simple_loop];
+
 anal_out=[];
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies
@@ -92,12 +30,12 @@ if solve_trapchar>0
 end
 %%% 2D grid trap B-field
 if plot_2D
-    visualise_2d(btrap,anal_out.trap_cent)
+    visualise_2d(btrap,plot_2d_opt)
 end
 
 %%% 3D grid trap B-field
 if plot_3D
-    visualise_3d(btrap,anal_out.trap_cent)
+    visualise_3d(btrap,[0,0,0])
 end
 
 

@@ -1,4 +1,4 @@
-function anal_out = mag_profile_1d(anal_out,btrap,B_cent,trap_cent)
+function anal_out = mag_profile_1d(anal_out,btrap,B_cent)
     global const
     points=1000;
     range=[[1,-1];[1,-1];[1,-1]]*1e-4;
@@ -9,11 +9,11 @@ function anal_out = mag_profile_1d(anal_out,btrap,B_cent,trap_cent)
     for n=1:3
         xyz_points=zeros(points,3);
         xyz_points(:,n)=linspace(range(n,1),range(n,2),points)';
-        xyz_points=trap_cent+xyz_points;
+        xyz_points=anal_out.trap_cen.pos+xyz_points;
         [bmag,bvec]=trap_eval(btrap,xyz_points);   
-        bmag=bmag-B_cent;
+        bmag=bmag-anal_out.trap_cen.b_mag;
         subplot(3,1,n)
-        deltx=xyz_points(:,n)-trap_cent(n);
+        deltx=xyz_points(:,n)-anal_out.trap_cen.pos(n);
         plot(deltx,bmag) %
         xlabel(labels(n))
         ylabel('Bfield')
