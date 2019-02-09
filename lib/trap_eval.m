@@ -31,6 +31,7 @@ for ii=1:ncomps
             error('not yet implemented')
         case 'spiral'
             error('not yet implemented')
+            Bxyz_this=Bfield_coil(R,I,rel_xyz);
         case 'uniform'
             % uniform B field
             % params: {[Bx,By,Bz]}
