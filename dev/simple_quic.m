@@ -4,17 +4,14 @@ solve_stpt=0;
 plot2d_opts.do=true;
 plot2d_opts.type='b_scal'; %['b_scal','b_vec_comp','b_angle','hess_l1norm']
 plot2d_opts.hess_delt=1e-7;
-plot2d_opts.plot_cen=[0.1,0.0,0];
-plot2d_opts.rot=pi/2 * [0, 1, 0];
+plot2d_opts.plot_cen=[0,0,0];
+plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-2,2];
                    [-2,2]];
-plot2d_opts.nsamp=[1,1]*100; 
-plot2d_opts.zero_on_cen=false;   
-plot2d_opts.vec_plot.do=true;
-plot2d_opts.vec_plot.nsamp=[1,1]*15;
+plot2d_opts.zero_on_cen=false;      
 
 
-plot3d_opts.do=false;
+plot3d_opts.do=true;
 plot3d_opts.type='b_scal'; %['b_scal','b_vec_comp','b_angle','hess_l1norm']
 plot3d_opts.hess_delt=1e-7;
 plot3d_opts.cen=[0,0,0.5];
@@ -45,36 +42,22 @@ hebec_constants
 %quic trap
 btrap=[];
 loopa=[];
-
 loopa.type='loop';
 loopa.param.radius=1;
 loopa.param.current=1;
-loopa.param.position=[0.0,0,0];
+loopa.param.position=[1,0.0,0];
 loopa.param.rot=pi/2*[0,1,0];
 loopb=loopa;
 loopc=loopa;
-loopb.param.current=1;
-loopb.param.position=[0.1,0,0];
 
-% linea.type='line';
-% linea.param.length=0.2;
-% linea.param.current=1;
-% linea.param.position=[0,0.0,-0.1];
-% linea.param.rot=pi/2*[0,0,0];
+loopb.param.current=-1;
+loopb.param.position=[-1,0,0];
 
+loopc.param.current=1;
+loopc.param.position=[0,-1.0,0];
+loopc.param.rot=pi/2*[1,0,0];
 
-
-%loop_from_lines(1,100)
-%loopb
-btrap.b_src=loopa;
-
-scal_prop_opt.type='b_comp';
-scal_prop_opt.btrap=btrap;
-scal_prop_opt.component_vec=[[0,1,0];
-                            [1,0,0]]
-scal_prop_opt.xyz_list=[[0.1,0.1,0.1];
-                        [0.1,0.1,0.1]];
-compute_scalar_property(scal_prop_opt)
+btrap.b_src=[loopa,loopb,loopc];
 
 anal_out=[];
 if solve_trapchar>0

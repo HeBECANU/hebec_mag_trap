@@ -67,14 +67,11 @@ loopb.param.position=[0.1,0,0];
 %loop_from_lines(1,100)
 %loopb
 btrap.b_src=loopa;
+b_single_loop=trap_eval(btrap,[0.1,0,0]);
+btrap.b_src=[loopa,loop_from_lines(1,50000,1)];
+b_both_loops=trap_eval(btrap,[0.1,0,0]);
 
-scal_prop_opt.type='b_comp';
-scal_prop_opt.btrap=btrap;
-scal_prop_opt.component_vec=[[0,1,0];
-                            [1,0,0]]
-scal_prop_opt.xyz_list=[[0.1,0.1,0.1];
-                        [0.1,0.1,0.1]];
-compute_scalar_property(scal_prop_opt)
+fprintf('cancels down to %g\n',b_both_loops/(2*b_single_loop))
 
 anal_out=[];
 if solve_trapchar>0

@@ -1,48 +1,78 @@
-function visualise_2d(btrap,plot_2d_opt)
-    trap_cen=plot_2d_opt.cen;
-    plot_range=plot_2d_opt.range;
-
-    ngrid=100;          % 50 - med; 300 - very fine;
-    rot_mat=rotationVectorToMatrix(plot_2d_opt.rot);
-    if plot_2d_opt.zero_on_cen
-        rot_cen=trap_cen*rot_mat;
-    else
-        rot_cen=zeros(1,3);
-    end
+function visualise_2d(plot_opts)
+    %plots a scalar value in a plane
+    %can rotate that plane about the center point 
     
     %plot_range=[[-2,12];[-8.5,8.5]]*1e-3; %x,z
     
-    % grid in trap centered ref frame
-    xyz_grid=zeros(ngrid,ngrid,1,3);
-    [xyz_grid(:,:,:,1),xyz_grid(:,:,:,2)]=...
-    meshgrid(linspace(plot_range(1,1),plot_range(1,2),ngrid),...
-             linspace(plot_range(2,1),plot_range(2,2),ngrid));    % meshgrid
-    xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
-    xyz_list=xyz_list+trap_cen;
+    plot_range=plot_opts.range;
+    plot_cen=plot_opts.plot_cen;
+    rot_mat=rotationVectorToMatrix(plot_opts.rot);
+   
+    % grid in unrotated ref frame
+    xyz_grid=zeros(plot_opts.nsamp(1),plot_opts.nsamp(2),3);
+    [xyz_grid(:,:,1),xyz_grid(:,:,2)]=...
+    meshgrid(linspace(plot_range(1,1),plot_range(1,2),plot_opts.nsamp(1)),...
+             linspace(plot_range(2,1),plot_range(2,2),plot_opts.nsamp(2)));    % meshgrid
+    xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2),size(xyz_grid,3)]);
+    %optimizations could be implmented here to not shift or rotate in the null cases
+    xyz_list=xyz_list-plot_cen; 
     xyz_list=xyz_list*rot_mat;
-    [Bmag_list,Bxyz]=trap_eval(btrap,xyz_list);
-    Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
+    xyz_list=xyz_list+plot_cen; 
+    xyz_list=xyz_list+plot_cen.*[0,0,1];
+    plot_opts.xyz_list=xyz_list;
+    scal_res=compute_scalar_property(plot_opts);
+    
+    bvec_grid=reshape(scal_res.val,[size(xyz_grid,1),size(xyz_grid,2)]);
     figure(3)
     clf;
-    h=surf((xyz_grid(:,:,:,1)-rot_cen(1))*1e3,(xyz_grid(:,:,:,2)-rot_cen(2))*1e3,Bmag_grid*1e4);
+    h=surf((xyz_grid(:,:,1)-plot_cen(1))*1e3,(xyz_grid(:,:,2)-plot_cen(2))*1e3,bvec_grid*1e4);
     colormap(viridis())
     set(h,'LineStyle','none')
     box on;
     xlabel('X [mm]');
     ylabel('Y [mm]');
-    title('Potential')
-    zlabel('B (Gauss)');
+    title(scal_res.plot_title)
+    zlabel(scal_res.plot_zlabel);
     set(gcf,'Color',[1 1 1]);
     pause(0.001);
     
     
     figure(13)
     clf
-    contour((xyz_grid(:,:,:,1)-rot_cen(1))*1e3,(xyz_grid(:,:,:,2)-rot_cen(2))*1e3,Bmag_grid,300)
+    contour((xyz_grid(:,:,1)-plot_cen(1))*1e3,(xyz_grid(:,:,2)-plot_cen(2))*1e3,bvec_grid*1e4,300)
     set(gcf,'Color',[1 1 1]);
-    title('Potential')
+    colormap(viridis())
+    c = colorbar;
+    ylabel(c, scal_res.plot_zlabel)
+    title(scal_res.plot_title)
     xlabel('X (mm)');
     ylabel('Y (mm)');
+    
+    if plot_opts.vec_plot.do
+        hold on
+        % grid in unrotated ref frame
+        xyz_grid=zeros(plot_opts.vec_plot.nsamp(1),plot_opts.vec_plot.nsamp(2),3);
+        [xyz_grid(:,:,1),xyz_grid(:,:,2)]=...
+        meshgrid(linspace(plot_range(1,1),plot_range(1,2),plot_opts.vec_plot.nsamp(1)),...
+                 linspace(plot_range(2,1),plot_range(2,2),plot_opts.vec_plot.nsamp(2)));    % meshgrid
+        xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2),size(xyz_grid,3)]);
+        %optimizations could be implmented here to not shift or rotate in the null cases
+        xyz_list=xyz_list-plot_cen; 
+        xyz_list=xyz_list*rot_mat;
+        xyz_list=xyz_list+plot_cen; 
+
+        [~,bvec_list]=trap_eval(plot_opts.btrap,xyz_list);
+    
+        
+        bvec_list=bvec_list*rot_mat;
+        bvec_grid=reshape(bvec_list,[size(xyz_grid,1),size(xyz_grid,2),3]);
+
+        h=quiver((xyz_grid(:,:,1)-plot_cen(1))*1e3,(xyz_grid(:,:,2)-plot_cen(2))*1e3,bvec_grid(:,:,1),bvec_grid(:,:,2));
+        
+        hold off
+    end
+        
+        
     
 %     xyz_grid=zeros(ngrid,ngrid,1,3);
 %     [xyz_grid(:,:,:,1),xyz_grid(:,:,:,2)]=...

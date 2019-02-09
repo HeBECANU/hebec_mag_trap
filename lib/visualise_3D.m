@@ -1,30 +1,40 @@
-function visualise_3d(btrap,trap_cent)
+function visualise_3d(plot_opts)
+    plot_scaling=1e3;
+    if ~isfield(plot_opts,'show_coils')
+        plot_opts.show_coils=true;
+    end
 
-    ngrid=100;          % 50 - med; 300 - very fine;
+    plot_range=plot_opts.range;
+    if plot_opts.zero_on_cen
+        trap_cen=plot_opts.cen;
+    else
+        trap_cen=zeros(1,3);
+    end
     % grid in trap centered ref frame
     xyz_grid=[];
     [xyz_grid(:,:,:,1),xyz_grid(:,:,:,2),xyz_grid(:,:,:,3)]=...
-    meshgrid(trap_cent(1)+linspace(-5e-3,20e-3,ngrid),...
-             trap_cent(2)+linspace(-5e-3,5e-3,ngrid),...
-             trap_cent(3)+linspace(-5e-3,5e-3,ngrid));    % meshgrid
+    meshgrid(linspace(plot_range(1,1),plot_range(1,2),plot_opts.nsamp(1)),...
+             linspace(plot_range(2,1),plot_range(2,2),plot_opts.nsamp(2)),...
+             linspace(plot_range(3,1),plot_range(3,2),plot_opts.nsamp(3)));    % meshgrid
     xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
-
-    [Bmag_list,Bxyz]=trap_eval(btrap,xyz_list);
-
-    Bmag_grid=reshape(Bmag_list,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
+    xyz_list=xyz_list+trap_cen;
+    plot_opts.xyz_list=xyz_list;
+    scal_res=compute_scalar_property(plot_opts);
+    
+    Bmag_grid=reshape(scal_res.val,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
     figure(2)
     set(gcf,'Color',[1 1 1]);
     clf;
     nBisosurf=10;
-    Bmax=max(Bmag_list(isfinite(Bmag_list)));
-    Bmin=min(Bmag_list(isfinite(Bmag_list)));
+    Bmax=max(Bmag_grid(isfinite(Bmag_grid(:))));
+    Bmin=min(Bmag_grid(isfinite(Bmag_grid(:))));
     Bisoval=logspace(log10(Bmin),log10(Bmax),nBisosurf);
     Bisoval=Bisoval(1:end);   % cull the min and max
     cc=viridis(nBisosurf);
     p={};
     pp=[];
     for ii=1:nBisosurf
-        p{ii}=isosurface(1e3*xyz_grid(:,:,:,1),1e3*xyz_grid(:,:,:,2),1e3*xyz_grid(:,:,:,3),Bmag_grid,Bisoval(ii));
+        p{ii}=isosurface(plot_scaling*xyz_grid(:,:,:,1),plot_scaling*xyz_grid(:,:,:,2),plot_scaling*xyz_grid(:,:,:,3),Bmag_grid,Bisoval(ii));
         pp(ii)=patch(p{ii},'FaceColor',cc(ii,:),'EdgeColor','none','FaceAlpha',0.15,...
             'DisplayName',sprintf('%0.1g',1e4*Bisoval(ii)));
     end
@@ -33,6 +43,9 @@ function visualise_3d(btrap,trap_cent)
     view(3);
     camlight;
     lighting gouraud;
+    xlim(plot_range(1,:)*plot_scaling)
+    ylim(plot_range(2,:)*plot_scaling)
+    zlim(plot_range(3,:)*plot_scaling)
 
     xlabel('X [mm]');
     ylabel('Y [mm]');
@@ -40,24 +53,58 @@ function visualise_3d(btrap,trap_cent)
 
     nnring=100;
     phi=linspace(0,2*pi,nnring);
-    [x_ring,y_ring]=pol2cart(phi,1);
-    z_ring=zeros(1,nnring);
-    for ii=1:numel(btrap)
+    xyz_unit_loop=zeros(numel(phi),3);
+    [xyz_unit_loop(:,1),xyz_unit_loop(:,2)]=pol2cart(phi,1);
+    xyz_unit_loop(:,3)=zeros(1,nnring);
+    nnline=100;
+    xyz_unit_line=zeros(nnline,3);
+    xyz_unit_line(:,3)=linspace(0,1,nnline);
+    
+    hold on;
+    for ii=1:numel(plot_opts.btrap.b_src)
         % only plot coils
-        if isequal(btrap(ii).type,'coil')
+        if isequal(plot_opts.btrap.b_src(ii).type,'loop')
             % transform from unit ring
-            R_coil_this=btrap(ii).param{1};
-            pos_coil_this=btrap(ii).param{3};
-            xthis=R_coil_this*x_ring+pos_coil_this(1);
-            ythis=R_coil_this*y_ring+pos_coil_this(2);
-            zthis=R_coil_this*z_ring+pos_coil_this(3);
-
+            R_coil_this=plot_opts.btrap.b_src(ii).param.radius;
+            pos_coil_this=plot_opts.btrap.b_src(ii).param.position;
+            xyz_this_loop=xyz_unit_loop*R_coil_this;
+            rot_mat=rotationVectorToMatrix(-plot_opts.btrap.b_src(ii).param.rot);
+            xyz_this_loop=xyz_this_loop*rot_mat+pos_coil_this;
+            
             % draw this coil
-            hold on;
-            plot3(1e3*xthis,1e3*ythis,1e3*zthis,...
+            
+            plot3(plot_scaling*xyz_this_loop(:,1),plot_scaling*xyz_this_loop(:,2),plot_scaling*xyz_this_loop(:,3),...
+                'Color','k','LineWidth',2);
+        end
+        if isequal(plot_opts.btrap.b_src(ii).type,'line')
+            % transform from unit ring
+            len_line_this=plot_opts.btrap.b_src(ii).param.length;
+            pos_coil_this=plot_opts.btrap.b_src(ii).param.position;
+            xyz_this_loop=xyz_unit_line*len_line_this;
+            rot_mat=rotationVectorToMatrix(-plot_opts.btrap.b_src(ii).param.rot);
+            xyz_this_loop=xyz_this_loop*rot_mat+pos_coil_this;
+            
+            % draw this coil
+            
+            plot3(plot_scaling*xyz_this_loop(:,1),plot_scaling*xyz_this_loop(:,2),plot_scaling*xyz_this_loop(:,3),...
                 'Color','k','LineWidth',2);
         end
     end
+    sensor_size=30e-3;
+    print('test')
+    if isfield(plot_opts.btrap,'nullr') && isfield(plot_opts.btrap.nullr,'sensor')
+        for ii=1:numel(plot_opts.btrap.nullr.sensor)
+            start_pt=plot_opts.btrap.nullr.sensor(ii).pos;
+            norm_dirn=plot_opts.btrap.nullr.sensor(ii).dirn/norm(plot_opts.btrap.nullr.sensor(ii).dirn);
+            end_pt=start_pt+sensor_size*norm_dirn;
+            mArrow3(plot_scaling*start_pt,plot_scaling*end_pt,'color','red','stemWidth',1,'facealpha',0.5);
+        end
+    end
+    
+    xlim(plot_range(1,:)*plot_scaling)
+    ylim(plot_range(2,:)*plot_scaling)
+    zlim(plot_range(3,:)*plot_scaling)
+    hold off;
 pause(0.01)
 
 end

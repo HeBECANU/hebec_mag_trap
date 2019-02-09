@@ -28,7 +28,15 @@ for ii=1:ncomps
             % call the coil calculator
             Bxyz_this=Bfield_loop(R,I,rot_vec,rel_xyz);
         case 'line'
-            error('not yet implemented')
+            % get coil param: {R, I, POS, ORI}            
+            L=elm_param.length;
+            I=elm_param.current;
+            pos=elm_param.position;
+            rot_vec=elm_param.rot;
+            %=param_this{4};
+            rel_xyz=xyz_list-pos;
+            % call the coil calculator
+            Bxyz_this=Bfield_finite_line(L,I,rot_vec,rel_xyz);
         case 'spiral'
             error('not yet implemented')
         case 'uniform'

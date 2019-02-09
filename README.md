@@ -30,3 +30,5 @@ This code is to calculate the magnetic feild for a magnetic trap
 This project would not have been possible without the many open source tools that it is based on.
 * ***John D'Errico*** [Adaptive Robust Numerical Differentiation](https://au.mathworks.com/matlabcentral/fileexchange/13490-adaptive-robust-numerical-differentiation)
 * ***Ander Biguri*** [Perceptually uniform colormaps](https://au.mathworks.com/matlabcentral/fileexchange/51986-perceptually-uniform-colormaps)
+* ***Georg Stillfried** [mArrow3.m - easy-to-use 3D arrow](https://au.mathworks.com/matlabcentral/fileexchange/25372-marrow3-m-easy-to-use-3d-arrow)
+
