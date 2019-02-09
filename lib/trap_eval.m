@@ -39,6 +39,7 @@ for ii=1:ncomps
             Bxyz_this=Bfield_finite_line(L,I,rot_vec,rel_xyz);
         case 'spiral'
             error('not yet implemented')
+            Bxyz_this=Bfield_coil(R,I,rel_xyz);
         case 'uniform'
             % uniform B field
             % params: {[Bx,By,Bz]}
