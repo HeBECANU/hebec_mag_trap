@@ -48,7 +48,7 @@ loopa=[];
 
 loopa.type='loop';
 loopa.param.radius=1;
-loopa.param.current=1;
+loopa.param.current=-1;
 loopa.param.position=[0.0,0,0];
 loopa.param.rot=pi/2*[0,1,0];
 loopb=loopa;
@@ -68,9 +68,10 @@ loopb.param.position=[0.1,0,0];
 %loopb
 btrap.b_src=loopa;
 b_single_loop=trap_eval(btrap,[0.1,0,0]);
-btrap.b_src=[loopa,loop_from_lines(1,50000,1)];
+btrap.b_src=[loopa,loop_from_lines(1,10000,1,'ana')];
+tic
 b_both_loops=trap_eval(btrap,[0.1,0,0]);
-
+toc
 fprintf('cancels down to %g\n',b_both_loops/(2*b_single_loop))
 
 anal_out=[];

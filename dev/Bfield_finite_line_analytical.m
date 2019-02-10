@@ -1,4 +1,4 @@
-function Bout=Bfield_finite_line(L,I,rot_vec,xyz)
+function Bout=Bfield_finite_line_analytical(L,I,rot_vec,xyz)
 % Bout = Bfield_finite_line(R, I, x, y, z)
 % B field calculator for single line of current (located at origin, pointing Z-axis)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
@@ -9,6 +9,8 @@ function Bout=Bfield_finite_line(L,I,rot_vec,xyz)
 % physical constants
 %global const
 %mu_0=const.mu0;  
+
+warning('this calculation is wrong! do not use this option')
 
 %hack to get to work in parfor
 mu_0=1.2566370614*10^-6;

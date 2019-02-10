@@ -62,31 +62,53 @@ function visualise_3d(plot_opts)
     
     hold on;
     for ii=1:numel(plot_opts.btrap.b_src)
+        elm_param=plot_opts.btrap.b_src(ii).param;
         % only plot coils
         if isequal(plot_opts.btrap.b_src(ii).type,'loop')
             % transform from unit ring
-            R_coil_this=plot_opts.btrap.b_src(ii).param.radius;
-            pos_coil_this=plot_opts.btrap.b_src(ii).param.position;
-            xyz_this_loop=xyz_unit_loop*R_coil_this;
-            rot_mat=rotationVectorToMatrix(-plot_opts.btrap.b_src(ii).param.rot);
-            xyz_this_loop=xyz_this_loop*rot_mat+pos_coil_this;
+            rad_coil=elm_param.radius;
+            pos=elm_param.position;
+            xyz_pos=xyz_unit_loop*rad_coil;
+            rot_vec=elm_param.rot;
+            rot_mat=rotationVectorToMatrix(-rot_vec);
+            xyz_pos=xyz_pos*rot_mat+pos;
             
             % draw this coil
             
-            plot3(plot_scaling*xyz_this_loop(:,1),plot_scaling*xyz_this_loop(:,2),plot_scaling*xyz_this_loop(:,3),...
+            plot3(plot_scaling*xyz_pos(:,1),plot_scaling*xyz_pos(:,2),plot_scaling*xyz_pos(:,3),...
+                'Color','k','LineWidth',2);
+        end
+        if isequal(plot_opts.btrap.b_src(ii).type,'helix')
+            % transform from unit ring
+            radius=elm_param.radius;
+            pitch=elm_param.pitch;
+            turn=[0,elm_param.turns];
+            dlen=elm_param.dlen;
+            pos=elm_param.position;
+            rot_vec=elm_param.rot;
+            rot_mat=rotationVectorToMatrix(-rot_vec);
+            tlim=2*pi*turn;
+            num_lines=min([1e3,ceil(range(tlim)/dlen)]);
+            tvec=linspace(tlim(1),tlim(2),num_lines)';
+            wire_pos=[radius*cos(tvec), radius*sin(tvec), pitch*tvec/(2*pi)];
+            xyz_pos=wire_pos*rot_mat+pos;
+            
+            % draw this coil
+            
+            plot3(plot_scaling*xyz_pos(:,1),plot_scaling*xyz_pos(:,2),plot_scaling*xyz_pos(:,3),...
                 'Color','k','LineWidth',2);
         end
         if isequal(plot_opts.btrap.b_src(ii).type,'line')
             % transform from unit ring
             len_line_this=plot_opts.btrap.b_src(ii).param.length;
-            pos_coil_this=plot_opts.btrap.b_src(ii).param.position;
-            xyz_this_loop=xyz_unit_line*len_line_this;
+            pos=plot_opts.btrap.b_src(ii).param.position;
+            xyz_pos=xyz_unit_line*len_line_this;
             rot_mat=rotationVectorToMatrix(-plot_opts.btrap.b_src(ii).param.rot);
-            xyz_this_loop=xyz_this_loop*rot_mat+pos_coil_this;
+            xyz_pos=xyz_pos*rot_mat+pos;
             
             % draw this coil
             
-            plot3(plot_scaling*xyz_this_loop(:,1),plot_scaling*xyz_this_loop(:,2),plot_scaling*xyz_this_loop(:,3),...
+            plot3(plot_scaling*xyz_pos(:,1),plot_scaling*xyz_pos(:,2),plot_scaling*xyz_pos(:,3),...
                 'Color','k','LineWidth',2);
         end
     end

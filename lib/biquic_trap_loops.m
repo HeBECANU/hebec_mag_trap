@@ -1,6 +1,6 @@
-function btrap=biquic_trap(btrap,trap_config)
+function btrap=biquic_trap_loops(btrap,trap_config)
 % btrap = biquic_trap(Iq, Ib, Bext)
-% Calculates the correct elements for a biquic trap and appends them to the btrap structure.
+% Calculates an aproximation for a biquic trap using current loops and appends them to the btrap structure.
 
 % Input
 %   btrap array of structures which sepcify the magnetic feild

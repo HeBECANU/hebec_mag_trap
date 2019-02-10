@@ -18,34 +18,45 @@ for ii=1:ncomps
     % evaluate B field for this object
     switch elm_type
         case 'loop'
-            % get coil param: {R, I, POS, ORI}            
-            R=elm_param.radius;
-            I=elm_param.current;
+            % get element parameters and format them for the calculator          
+            rad=elm_param.radius;
+            curr=elm_param.current;
             pos=elm_param.position;
             rot_vec=elm_param.rot;
-            %=param_this{4};
             rel_xyz=xyz_list-pos;
-            % call the coil calculator
-            Bxyz_this=Bfield_loop(R,I,rot_vec,rel_xyz);
-        case 'line'
-            % get coil param: {R, I, POS, ORI}            
-            L=elm_param.length;
-            I=elm_param.current;
+            % call the elemnt calculator
+            Bxyz_this=Bfield_loop_analytic(rad,curr,rot_vec,rel_xyz);
+        case {'num line','numeric line'}   
+            tlim=[0,elm_param.length];
+            curr=elm_param.current;
+            pos=elm_param.position;
+            dlen=elm_param.dlen;
+            rot_vec=elm_param.rot;
+            rel_xyz=xyz_list-pos;
+            Bxyz_this=Bfield_finite_line_numeric(tlim,dlen,curr,rot_vec,rel_xyz);
+        case {'line','ana line','analytic line'}       
+            tlim=[0,elm_param.length];
+            curr=elm_param.current;
             pos=elm_param.position;
             rot_vec=elm_param.rot;
-            %=param_this{4};
             rel_xyz=xyz_list-pos;
-            % call the coil calculator
-            Bxyz_this=Bfield_finite_line(L,I,rot_vec,rel_xyz);
-        case 'spiral'
-            error('not yet implemented')
-            Bxyz_this=Bfield_coil(R,I,rel_xyz);
+            Bxyz_this=Bfield_finite_line_analytic(tlim,curr,rot_vec,rel_xyz);
+        case {'helix','num helix','numeric helix'} 
+            rad=elm_param.radius;
+            pitch=elm_param.pitch;
+            turn=[0,elm_param.turns];
+            dlen=elm_param.dlen;
+            curr=elm_param.current;
+            pos=elm_param.position;
+            rot_vec=elm_param.rot;
+            rel_xyz=xyz_list-pos;
+            Bxyz_this=Bfield_helix_numeric(rad,pitch,turn,dlen,curr,rot_vec,rel_xyz);
         case 'uniform'
             % uniform B field
             % params: {[Bx,By,Bz]}
             Bxyz_this=elm_param;     % get the uniform B field vector
         otherwise
-            error('<TRAP>.type of %s is not recognised.',string(typethis));
+            error('element type of "%s" is not recognised.',elm_type);
     end
     
     % add to total B field array

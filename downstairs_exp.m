@@ -24,21 +24,12 @@
 
 
 % TODO:
-%move st_point calculator to trap charaterize
-%change btrap from a vector of structures to a structure with cells
 %break out potential from B feild for future optical & grav potential
 %add in gravitational,optical potentials for hybrid trapping
 %reproduce numbers from https://www.sciencedirect.com/science/article/pii/S0030401806009680?via%3Dihub
-%currently trap freq way higher than reported there 
-%factor out plot code
-    %add options for various 2d slices
-
 %find principle axes for trap
-%more flexibility of orentation of mag cois
 %finding net trap osc period with amplitude
     %use integration of potential landscape
-%should estimate ideal numerical derivative step size with https://en.wikipedia.org/wiki/Numerical_differentiation#Practical_considerations_using_floating_point_arithmetic    
-
 
 
 % DONE:
@@ -49,7 +40,7 @@
 t_start=tic;
 % ------------------START USER Config--------------
 
-solve_trapchar=1;
+solve_trapchar=0;
 solve_trapdepth=0;
 solve_stpt=0;
 
@@ -60,7 +51,7 @@ plot2d_opts.plot_cen=[0.0,0.0,0e-3];
 plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-1,1];
                    [-1,1]]*10e-3;
-plot2d_opts.nsamp=[1,1]*100; 
+plot2d_opts.nsamp=[1,1]*30; 
 plot2d_opts.zero_on_cen=false;   
 plot2d_opts.vec_plot.do=true;
 plot2d_opts.vec_plot.nsamp=[1,1]*30;
@@ -74,7 +65,7 @@ plot3d_opts.cen=[0,0,3];
 plot3d_opts.range=[[-1,1];
                    [-1,1];
                    [-1,1]]*100*1e-3;
-plot3d_opts.nsamp=[1,1,1]*50;           
+plot3d_opts.nsamp=[1,1,1]*10;           
 plot3d_opts.zero_on_cen=false;    
 
 
@@ -112,8 +103,8 @@ end
 
 btrap=[];
 
-btrap=biquic_trap(btrap,trap_config);  % build biquic
-
+%btrap=biquic_trap_loops(btrap,trap_config);  % build biquic
+btrap=biquic_trap_helix(btrap,trap_config);  % build biquic
 
 
 nullr_opt=[];
@@ -142,7 +133,7 @@ nullr_opt.sensor(6).pos=[45,-50,-50]*1e-3;
 nullr_opt.sensor(6).dirn=[0,0,1];
 nullr_opt.avg_sensors=[2,3];
 nullr_opt.current_guess=curr_guess;
-btrap=feedback_nullr(btrap,nullr_opt);
+%btrap=feedback_nullr(btrap,nullr_opt);
 
 
 
