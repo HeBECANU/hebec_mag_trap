@@ -1,6 +1,6 @@
 function btrap=biquic_trap_helix(btrap,trap_config)
 % btrap = biquic_trap(Iq, Ib, Bext)
-% Calculates an aproximation for a biquic trap using current loops and appends them to the btrap structure.
+% Calculates the b feild elements for a biquic trap using helixes and appends them to the btrap structure.
 
 % Input
 %   btrap array of structures which sepcify the magnetic feild
@@ -17,7 +17,7 @@ function btrap=biquic_trap_helix(btrap,trap_config)
 % 
 
 if ~isfield(trap_config,'dlen_num')
-    trap_config.dlen_num=1e-3;
+    trap_config.dlen_num=0.1;
 end
 
 %%% Biquic geometry
@@ -53,8 +53,8 @@ Rtrap=Dtrap/2;
 Rbias=Dbias/2;
 
 % turns
-Nturnbias=18;
-Nturntrap=10;
+Nturnbias=18+0.5;
+Nturntrap=10+0.5;
 
 %measurments
 
@@ -110,7 +110,8 @@ trap_coil_right.param.current=Itrap;
 trap_coil_right.param.turns=Nturntrap;
 trap_coil_right.param.pitch=pitch_coil;
 trap_coil_right.param.position=[-disp_qb/2,disp_ah/2,0];
-trap_coil_right.param.rot=pi/2*[1,0,0]; %angle of pointing in theta,phi
+trap_coil_right.param.rot=rotationMatrixToVector(rotationVectorToMatrix(pi/2*[0,1,0])...
+    *rotationVectorToMatrix(pi/2*[1,0,0])); %angle of pointing in theta,phi
 % Shunt (Ioffe) - ref
 bias_coil_right=[];
 bias_coil_right.type='helix';
@@ -120,7 +121,7 @@ bias_coil_right.param.current=Ibias;
 bias_coil_right.param.turns=Nturnbias;
 bias_coil_right.param.pitch=pitch_coil;
 bias_coil_right.param.position=[disp_qb/2,disp_ah/2,0];
-bias_coil_right.param.rot=pi/2*[1,0,0]; %angle of pointing in theta,phi
+bias_coil_right.param.rot=trap_coil_right.param.rot; %angle of pointing in theta,phi
 % Trap external bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
 extbias.type='uniform';
 extbias.param=trap_config.Bext;
@@ -131,9 +132,11 @@ btrap.b_src=[btrap.b_src,trap_coil_right,bias_coil_right];
 
 trap_coil_left=trap_coil_right;
 bias_coil_left=bias_coil_right;
+bias_coil_left.param.turns=-bias_coil_left.param.turns;
+trap_coil_left.param.turns=-trap_coil_left.param.turns;
 bias_coil_left.param.position=[1,-1,1].*bias_coil_right.param.position;
 trap_coil_left.param.position=[1,-1,1].*trap_coil_right.param.position;
-btrap.b_src=[btrap.b_src,trap_coil_right,bias_coil_right];
+btrap.b_src=[btrap.b_src,trap_coil_left,bias_coil_left];
 
 
 % btrap.b_src=[];

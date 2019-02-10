@@ -40,7 +40,7 @@
 t_start=tic;
 % ------------------START USER Config--------------
 
-solve_trapchar=0;
+solve_trapchar=1;
 solve_trapdepth=0;
 solve_stpt=0;
 
@@ -51,10 +51,10 @@ plot2d_opts.plot_cen=[0.0,0.0,0e-3];
 plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-1,1];
                    [-1,1]]*10e-3;
-plot2d_opts.nsamp=[1,1]*30; 
+plot2d_opts.nsamp=[1,1]*60; 
 plot2d_opts.zero_on_cen=false;   
 plot2d_opts.vec_plot.do=true;
-plot2d_opts.vec_plot.nsamp=[1,1]*30;
+plot2d_opts.vec_plot.nsamp=[1,1]*10;
 
 
 plot3d_opts.do=true;
@@ -64,8 +64,8 @@ plot3d_opts.hess_delt=1e-7;
 plot3d_opts.cen=[0,0,3];
 plot3d_opts.range=[[-1,1];
                    [-1,1];
-                   [-1,1]]*100*1e-3;
-plot3d_opts.nsamp=[1,1,1]*10;           
+                   [-1,1]]*25*1e-3;
+plot3d_opts.nsamp=[1,1,1]*50;           
 plot3d_opts.zero_on_cen=false;    
 
 

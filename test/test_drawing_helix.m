@@ -45,7 +45,7 @@ hebec_constants
 btrap=[];
 single_helix=[];
 single_helix.type='helix';
-single_helix.param.dlen=1e-3;
+single_helix.param.dlen=1e-1;
 single_helix.param.radius=1;
 single_helix.param.current=1;
 single_helix.param.turns=2;
