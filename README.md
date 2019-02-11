@@ -1,4 +1,5 @@
 # hebec_mag_trap
+**[David K. Shin](https://github.com/spicydonkey) [Bryce M. Henson](https://github.com/brycehenson), [Kieran F. Thomas](https://github.com/KF-Thomas)**  
 Magnetostatic field calculator for trapping neutral atoms
 - Multiple magnetic feild sources
   - arbitrary path numeric solver
