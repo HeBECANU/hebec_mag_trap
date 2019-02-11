@@ -1,31 +1,37 @@
 # hebec_mag_trap
 Magnetostatic field calculator for trapping neutral atoms
-- Does gradient decent to find the trap center.
-- Finds the trap depth via jacobian magnitude decent to find the critial points of the poential.
-
-This code is to calculate the magnetic feild for a magnetic trap
- https://doi.org/10.1016/j.optcom.2006.09.031
+- Multiple magnetic feild sources
+  - arbitrary path numeric solver
+  - loop (analytic)
+  - line (analytic)
+  - helix (numeric)
+- Trap Charaterization
+  - gradient decent to find the trap center.
+  - finds trap frequency
+  - Finds the trap depth via jacobian magnitude decent to find the critial points of the poential.
+- Plots
+  - 2d slice
+  - 3d potential
+- Traps implmeneted
+  - Biquic https://doi.org/10.1016/j.optcom.2006.09.031
  
+   ![mag trap potential](/plots/biquic.png "Potential")
+   
   ![mag trap potential](/plots/potential_xz.png "Potential")
   
  ![The sum of the absolute magnitudes of the jacobians](/plots/jacobian_xz.png "Jacobinan Landscape")
  
- ## Bryce Done
- -
- 
-## To Do
-- 3d minimizations
-- coherent output struct
-- more field sources
-  - Current line
-  - current spiral
-- Add all open source contributions to the ack.
 
+## To Do
+- find the principle axes of the trap (dont just assume cartesian)
+- implement other trap geometeries
+- coherent output struct
+- magnetic field source code
+  - flat spiral/ pancake coil 
 - add in multiple potential sources
   - gravity
   - optical
-- full spiral integeration
-- coil geometery ploting
+
 
 
 ## Contributions
