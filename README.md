@@ -21,7 +21,16 @@ Magnetostatic field calculator for trapping neutral atoms
   ![mag trap potential](/plots/potential_xz.png "Potential")
   
  ![The sum of the absolute magnitudes of the jacobians](/plots/jacobian_xz.png "Jacobinan Landscape")
- 
+
+## Install
+``` 
+git clone --recurse-submodules -j8 https://github.com/spicydonkey/hebec_mag_trap.git
+```
+then to update 
+```
+git submodule update --recursive --init
+git submodule foreach --recursive git pull origin master
+```
 
 ## To Do
 - find the principle axes of the trap (dont just assume cartesian)
@@ -32,8 +41,6 @@ Magnetostatic field calculator for trapping neutral atoms
 - add in multiple potential sources
   - gravity
   - optical
-
-
 
 ## Contributions
 This project would not have been possible without the many open source tools that it is based on.

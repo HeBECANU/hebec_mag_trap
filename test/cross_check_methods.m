@@ -145,13 +145,13 @@ syms t
 radius=1;
 pitch=1;
 path_line=symfun([radius*cos(t), radius*sin(t), pitch*t/(2*pi)],t);
-len=2*pi;
 curr=1;
 dlen=1e-3;
-tlim=[0,len];
+turn=[0,1];
+tlim=turn*2*pi;
 
 tic
-res_a=Bfield_helix_numeric(radius,pitch,tlim,dlen,curr,rot_vec,xyz_samp);
+res_a=Bfield_helix_numeric(radius,pitch,turn,dlen,curr,rot_vec,xyz_samp);
 time_a=toc;
 tic
 res_b=Bfield_path_numeric(path_line,tlim,dlen,curr,rot_vec,xyz_samp);

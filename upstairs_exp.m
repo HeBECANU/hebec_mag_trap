@@ -41,7 +41,7 @@ t_start=tic;
 % ------------------START USER Config--------------
 
 solve_trapchar=1;
-solve_trapdepth=0;
+solve_trapdepth=1;
 solve_stpt=0;
 
 plot2d_opts.do=true;
@@ -130,8 +130,6 @@ end
 if solve_stpt>0
     st_pts=stationary_points(btrap,anal_out.trap_cent,solve_stpt);
 end
-
-
 
 
 %% End of code
