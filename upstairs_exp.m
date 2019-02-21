@@ -48,7 +48,7 @@ plot2d_opts.do=true;
 plot2d_opts.type='b_scal'; %['b_scal','b_vec_comp','b_angle','hess_l1norm']
 plot2d_opts.hess_delt=1e-7;
 plot2d_opts.plot_cen=[0.0,0.0,0e-3];
-plot2d_opts.rot=pi/2 * [0, 0, 0];
+plot2d_opts.rot=pi/2 * [1, 0, 0];
 plot2d_opts.range=[[-1,1];
                    [-1,1]]*10e-3;
 plot2d_opts.nsamp=[1,1]*60; 
@@ -70,8 +70,8 @@ plot3d_opts.zero_on_cen=false;
 
 
 %% mag trap
-trap_config.v_quad=3.4; %3.4 used in 'normal trap' 14.178 A
-trap_config.v_shunt=0.2;%0.2 used in TO 
+trap_config.i_trap=10; %3.4 used in 'normal trap' 14.178 A
+trap_config.i_bias=30;%0.2 used in TO 
 
 trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform assumption)
 
@@ -104,37 +104,7 @@ end
 btrap=[];
 
 %btrap=biquic_trap_loops(btrap,trap_config);  % build biquic
-btrap=biquic_trap_helix(btrap,trap_config);  % build biquic
-
-
-nullr_opt=[];
-nullr_opt.radius=500e-3;
-nullr_opt.inset=90e-3;
-nullr_opt.sensor=[];
-nullr_opt.sensor(1).pos=[40,0,0]*1e-3;
-nullr_opt.sensor(1).dirn=[-1,0,0];
-
-
-nullr_opt.sensor(2).pos=[-80,0,0]*1e-3;
-nullr_opt.sensor(2).dirn=[1,0,0];
-
-nullr_opt.sensor(3).pos=[96,80,0]*1e-3;
-nullr_opt.sensor(3).dirn=[0,-1,0];
-
-
-
-nullr_opt.sensor(4).pos=[-80,-44,0]*1e-3;
-nullr_opt.sensor(4).dirn=[0,1,0];
-
-
-nullr_opt.sensor(5).pos=[0,0,80]*1e-3;
-nullr_opt.sensor(5).dirn=[0,0,-1];
-nullr_opt.sensor(6).pos=[45,-50,-50]*1e-3;
-nullr_opt.sensor(6).dirn=[0,0,1];
-nullr_opt.avg_sensors=[2,3];
-nullr_opt.current_guess=curr_guess;
-%btrap=feedback_nullr(btrap,nullr_opt);
-
+btrap=upstairs_ioffe_trap_helix(btrap,trap_config);  % build biquic
 
 
 anal_out=[];
