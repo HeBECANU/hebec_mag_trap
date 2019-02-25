@@ -1,14 +1,17 @@
 %test equalities
 % this script goes through and cross checks the various B feild calculators
+% in particular we wish to check the analytic expressions against the numeric path calculation
 
 % we will validate by samping in ±2 across all dimensions 
+% ------------------START USER Config--------------
 xyz_samp=(rand(10,3)-0.5)*4;
 rot_vec=[0.1,0,0];
-logic_str={'pass','!!! FAIL FAIL FAIL !!!'};
 verbose=2;
-fail_count=0;
 frac_tolerance=1e-9;
-%%
+%------------- END USER Config-------------------------
+% initalize var
+fail_count=0;
+logic_str={'pass','!!! FAIL FAIL FAIL !!!'};
 %% Bfield_finite_line_analytic  vs  Bfield_path_numeric
 fprintf('Bfield_finite_line_analytic vs Bfield_path_numeric \n')
 % create a path of a line
@@ -41,7 +44,6 @@ if verbose>1
 end
 fail_test=(abs(res_diff_max)>frac_tolerance);
 if fail_test || verbose>0
-    
     fprintf('TEST: %s \n',logic_str{1+(fail_test)})
 end
 
@@ -83,7 +85,6 @@ if verbose>1
 end
 fail_test=(abs(res_diff_max)>frac_tolerance);
 if fail_test || verbose>0
-    
     fprintf('TEST: %s \n',logic_str{1+(fail_test)})
 end
 
@@ -128,7 +129,6 @@ if verbose>1
 end
 fail_test=(abs(res_diff_max)>frac_tolerance);
 if fail_test || verbose>0
-    
     fprintf('TEST: %s \n',logic_str{1+(fail_test)})
 end
 
@@ -171,7 +171,6 @@ if verbose>1
 end
 fail_test=(abs(res_diff_max)>frac_tolerance);
 if fail_test || verbose>0
-    
     fprintf('TEST: %s \n',logic_str{1+(fail_test)})
 end
 
@@ -220,7 +219,6 @@ if verbose>1
 end
 fail_test=(abs(res_diff_max)>frac_tolerance);
 if fail_test || verbose>0
-    
     fprintf('TEST: %s \n',logic_str{1+(fail_test)})
 end
 
