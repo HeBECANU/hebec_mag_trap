@@ -37,6 +37,12 @@
 %check that the Energy of a He* atom in a B feild is E=2*ub*B  
 %looks to be the case http://iopscience.iop.org.virtual.anu.edu.au/article/10.1088/1464-4266/5/2/360/pdf
 %close all
+
+%%% CORD system
+% x +ve towards LVIS
+% Y -ve towards desk/ source
+% Y axis along ZS
+
 t_start=tic;
 % ------------------START USER Config--------------
 
@@ -64,7 +70,7 @@ plot3d_opts.hess_delt=1e-7;
 plot3d_opts.cen=[0,0,3];
 plot3d_opts.range=[[-1,1];
                    [-1,1];
-                   [-1,1]]*25*1e-3;
+                   [-1,1]]*200*1e-3;
 plot3d_opts.nsamp=[1,1,1]*10;           
 plot3d_opts.zero_on_cen=false;    
 
@@ -110,30 +116,43 @@ btrap=biquic_trap_helix(btrap,trap_config);  % build biquic
 nullr_opt=[];
 nullr_opt.radius=500e-3;
 nullr_opt.inset=90e-3;
+nullr_opt.do_opt=true;
 nullr_opt.sensor=[];
-nullr_opt.sensor(1).pos=[40,0,0]*1e-3;
+
+
+%%% CORD system
+% x +ve towards LVIS
+% Y -ve towards desk/ source
+% Y axis along ZS
+% YELLOW SENSOR
+nullr_opt.sensor(1).pos=[90,-30,0]*1e-3;
 nullr_opt.sensor(1).dirn=[-1,0,0];
-
-
-nullr_opt.sensor(2).pos=[-80,0,0]*1e-3;
+%GREEN SENSOR
+% x 94±3mm away from LVIS
+nullr_opt.sensor(2).pos=[-94,30,55]*1e-3;
 nullr_opt.sensor(2).dirn=[1,0,0];
-
-nullr_opt.sensor(3).pos=[96,80,0]*1e-3;
+%BLUE SENSOR
+% x 51±5mm away from LVIS
+nullr_opt.sensor(3).pos=[-51,55,0]*1e-3;
 nullr_opt.sensor(3).dirn=[0,-1,0];
-
-
-
-nullr_opt.sensor(4).pos=[-80,-44,0]*1e-3;
+% WHITE SENSOR 
+% x 43mm towards LVIS
+% displacement along Y
+nullr_opt.sensor(4).pos=[43,-55,0]*1e-3; 
 nullr_opt.sensor(4).dirn=[0,1,0];
-
-
-nullr_opt.sensor(5).pos=[0,0,80]*1e-3;
+%RED SENSOR
+% x 37mm towards LVIS
+% z 45 up
+nullr_opt.sensor(5).pos=[55,55,45]*1e-3;
 nullr_opt.sensor(5).dirn=[0,0,-1];
-nullr_opt.sensor(6).pos=[45,-50,-50]*1e-3;
+%unknown colour
+% 96-148
+nullr_opt.sensor(6).pos=[-45,-55,-52]*1e-3;
 nullr_opt.sensor(6).dirn=[0,0,1];
+
 nullr_opt.avg_sensors=[2,3];
 nullr_opt.current_guess=curr_guess;
-%btrap=feedback_nullr(btrap,nullr_opt);
+btrap=feedback_nullr(btrap,nullr_opt);
 
 
 

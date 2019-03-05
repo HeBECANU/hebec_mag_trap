@@ -1,11 +1,15 @@
 function btrap=feedback_nullr(btrap,nullr_opt)
 %
-
-options = optimset('PlotFcns',@optimplotfval,'TolFun',1e-6,'MaxFunEvals',1e3);
-nuller_curr_opt=fminsearch(@(x) evaluate_trail_nuller(btrap,nullr_opt,x),...
-    nullr_opt.current_guess,options);
-nullr_opt.current=nuller_curr_opt;
-btrap.nullr.current=nuller_curr_opt;
+if ~isfield(nullr_opt,'do_opt') || nullr_opt.do_opt
+    options = optimset('PlotFcns',@optimplotfval,'TolFun',1e-6,'MaxFunEvals',1e3);
+    nuller_curr_opt=fminsearch(@(x) evaluate_trail_nuller(btrap,nullr_opt,x),...
+        nullr_opt.current_guess,options);
+    nullr_opt.current=nuller_curr_opt;
+    btrap.nullr.current=nuller_curr_opt;
+else
+    nullr_opt.current=nullr_opt.current_guess;
+    btrap.nullr.current=nullr_opt.current_guess;
+end
 btrap.nullr.sensor=nullr_opt.sensor;
 btrap=build_nuller(btrap,nullr_opt);
 
