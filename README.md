@@ -28,8 +28,8 @@ git clone --recurse-submodules -j8 https://github.com/spicydonkey/hebec_mag_trap
 ```
 then to update 
 ```
-git submodule update --recursive --init
 git submodule foreach --recursive git pull origin master
+git submodule update --recursive --init
 ```
 
 ## To Do
