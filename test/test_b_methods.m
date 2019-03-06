@@ -1,5 +1,5 @@
 %test equalities
-% this script goes through and cross checks the various B feild calculators
+% this script goes through and cross checks the various B feild calculators against each other
 % in particular we wish to check the analytic expressions against the numeric path calculation
 
 % we will validate by samping in ±2 across all dimensions 
@@ -30,18 +30,17 @@ tic
 res_b=Bfield_path_numeric(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
 time_b=toc;
 
+if verbose>1
+    fprintf('INFO: eval time Bfield_finite_line_analytic  %.3g\n',time_a)
+    fprintf('INFO: eval time Bfield_path_numeric          %.3g\n', time_b)
+    fprintf('INFO: rel time                               %.3g\n', time_a/time_b)
+end
 res_diff=res_a-res_b;
 res_mean=mean(cat(3,res_a,res_b),3);
 res_frac=res_diff./res_mean;
 res_diff_max=max(res_frac(:));
 res_diff_mean=mean(res_frac(:));
 res_diff_norm=vecnorm(res_frac,2,2);
-
-if verbose>1
-    fprintf('INFO: eval time Bfield_finite_line_analytic  %.3g\n',time_a)
-    fprintf('INFO: eval time Bfield_path_numeric          %.3g\n', time_b)
-    fprintf('INFO: rel time                               %.3g\n', time_a/time_b)
-end
 fail_test=(abs(res_diff_max)>frac_tolerance);
 if fail_test || verbose>0
     fprintf('TEST: %s \n',logic_str{1+(fail_test)})

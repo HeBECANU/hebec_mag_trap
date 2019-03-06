@@ -38,7 +38,8 @@ for ii=1:size(xyz,1)
     %difference between interogation point and the wire position
     Rvec=xyz(ii,:)-wire_pos;
     %calculate the infentesimal b field vector
-    dBvec=cross(dLdt,Rvec)./(vecnorm(Rvec,2,2).^3);
+    %dBvec=cross(dLdt,Rvec)./(vecnorm(Rvec,2,2).^3);
+    dBvec=cross(dLdt,Rvec)./(pwr(vecnorm(Rvec,2,2),3)); %use the faster pwr methot instead of .^3
     %combine them all
     Bout_trapz(ii,:)=trapz(tvec,dBvec);
 end
