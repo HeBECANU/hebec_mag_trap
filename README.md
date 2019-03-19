@@ -1,7 +1,7 @@
 # hebec_mag_trap
 **[David K. Shin](https://github.com/spicydonkey) [Bryce M. Henson](https://github.com/brycehenson), [Kieran F. Thomas](https://github.com/KF-Thomas)**  
 Magnetostatic field calculator for trapping neutral atoms
-**Status:** This Code is **ready to be used by experts**. Comparative Unit Testing is implemented for **most** functions. Integration/system testing against analytical trap calculations is **not** implemented.
+**Status:** This Code is **ready to be used by experts**, **it is still in DEV**. Comparative Unit Testing is implemented for **most** functions. Integration/system testing against analytical trap calculations is **not** implemented.
 
 - Multiple magnetic feild sources
   - arbitrary path numeric solver
