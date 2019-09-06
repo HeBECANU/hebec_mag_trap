@@ -56,7 +56,7 @@ plot2d_opts.hess_delt=1e-7;
 plot2d_opts.plot_cen=[0.0,0.0,0e-3];
 plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-1,1];
-                   [-1,1]]*10e-3;
+                   [-1,1]]*1e-3;
 plot2d_opts.nsamp=[1,1]*60; 
 plot2d_opts.zero_on_cen=false;   
 plot2d_opts.vec_plot.do=true;
@@ -76,10 +76,10 @@ plot3d_opts.zero_on_cen=false;
 
 
 %% mag trap
+trap_config.dlen_num=1e-4;
 trap_config.v_quad=3.4; %3.4 used in 'normal trap' 14.178 A
 trap_config.v_shunt=0.2;%0.2 used in TO 
-
-trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform assumption)
+trap_config.Bext=1e-4*[0,0.5,0];     % external bias field [T] (uniform assumption)
 
 % trap_config.v_quad=3.4; %3.4 used in 'normal trap'
 % trap_config.v_shunt=0.0;  
@@ -143,19 +143,22 @@ nullr_opt.sensor(5).dirn=[0,0,-1];
 % 96-148
 nullr_opt.sensor(6).pos=[-45,-55,-52]*1e-3;
 nullr_opt.sensor(6).dirn=[0,0,1];
-nullr_opt.avg_sensors=[2,3];
+nullr_opt.avg_sensors=[3,4];
 
+nullr_opt.b_to_volt_conversion=1e5;
 
 
 if exist('btrap','var') && isfield(btrap,'nullr') && isfield(btrap.nullr,'current')
     curr_guess=btrap.nullr.current;
+    %curr_guess=[[1,1];[1,1];[1,1]]*0;
 else
     curr_guess=[[1,1];[1,1];[1,1]];
 end
 
 nullr_opt.current_guess=curr_guess;
+nullr_opt.set_pt_v=[0.0,0,0,0,-0.3];
 % apply nuller feedback
-btrap=feedback_nullr(btrap,nullr_opt);
+%[btrap,nuller_status]=feedback_nullr(btrap,nullr_opt);
 
 
 %%
@@ -166,6 +169,32 @@ if solve_trapchar>0
     verbose=0;
     anal_out=trap_characterise(anal_out,btrap,[-5e-3,0,0],solve_trapdepth,verbose);
 end
+
+
+
+%%
+calc_props=[];
+calc_props.type='b_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
+calc_props.ref_vec=[1,0,0];
+calc_props.convert_to_deg=1;
+calc_props.xyz_list= anal_out.trap_cen.pos;
+calc_props.btrap=btrap;
+scal_out=compute_scalar_property(calc_props);
+vec_angle=scal_out.val
+
+calc_props=[];
+calc_props.type='b_polar_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
+calc_props.ref_vec_pointing=[1,0,0];
+calc_props.ref_vec_angle=[0,0,1];
+calc_props.convert_to_deg=1;
+calc_props.xyz_list= anal_out.trap_cen.pos;
+calc_props.btrap=btrap;
+scal_out=compute_scalar_property(calc_props);
+vec_polar_angle=scal_out.val
+
+
+%%
+
 %%% 2D grid trap B-field
 if plot2d_opts.do
     plot2d_opts.btrap=btrap;
@@ -183,6 +212,61 @@ if solve_stpt>0
     st_pts=stationary_points(btrap,anal_out.trap_cent,solve_stpt);
 end
 
+
+
+
+
+%% narrow plots
+
+plot2d_opts.do=true;
+plot2d_opts.type='b_scal'; %['b_scal','b_vec_comp','b_angle','hess_l1norm']
+plot2d_opts.hess_delt=1e-7;
+plot2d_opts.plot_cen= anal_out.trap_cen.pos;
+plot2d_opts.rot=pi/2 * [0, 0, 0];
+plot2d_opts.range=[[-1,1];
+                   [-1,1]]*1e-3;
+plot2d_opts.nsamp=[1,1]*60; 
+plot2d_opts.zero_on_cen=false;   
+plot2d_opts.vec_plot.do=true;
+plot2d_opts.vec_plot.nsamp=[1,1]*10;
+
+
+%%% 2D grid trap B-field
+if plot2d_opts.do
+    plot2d_opts.btrap=btrap;
+    visualise_2d(plot2d_opts)
+end
+
+
+%% polar angle plot
+
+plot1d_opts.do=true;
+plot1d_opts.type='b_polar_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
+plot1d_opts.ref_vec_pointing=[1,0,0];
+plot1d_opts.ref_vec_angle=[0,0,1];
+plot1d_opts.plot_cen= anal_out.trap_cen.pos;
+plot1d_opts.rot=pi/2 * [0, 0, 0];
+plot1d_opts.range=[-1,1]*1e-4;
+plot1d_opts.nsamp=[1,1]*60; 
+plot1d_opts.convert_to_deg=1;
+
+%%% 2D grid trap B-field
+if plot2d_opts.do
+    plot1d_opts.btrap=btrap;
+    visualise_1d(plot1d_opts)
+end
+
+%%
+plot1d_opts.do=true;
+plot1d_opts.type='b_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
+plot1d_opts.ref_vec=[1,0,0];
+plot1d_opts.convert_to_deg=1;
+
+%%% 2D grid trap B-field
+if plot2d_opts.do
+    plot1d_opts.btrap=btrap;
+    visualise_1d(plot1d_opts)
+end
 
 
 

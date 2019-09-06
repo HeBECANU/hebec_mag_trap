@@ -34,8 +34,7 @@ Bout=((mu_0*curr)/(4*pi)).*Bout;
 Bout=Bout*rev_rot_mat;
 end
 
-%old equivelent methods
-
+% atempts to speed up code
 %save parts of the evaluation 1.19s
 % xyz_squared=pwr(xyz,2);
 % xy_squared_sum=xyz_squared(:,1) + xyz_squared(:,2);

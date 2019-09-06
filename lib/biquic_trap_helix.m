@@ -17,7 +17,7 @@ function btrap=biquic_trap_helix(btrap,trap_config)
 % 
 
 if ~isfield(trap_config,'dlen_num')
-    trap_config.dlen_num=0.1;
+    trap_config.dlen_num=1e-4; %for numerical path calculations the size of the step
 end
 
 %%% Biquic geometry

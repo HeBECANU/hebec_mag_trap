@@ -22,18 +22,18 @@ function visualise_3d(plot_opts)
     scal_res=compute_scalar_property(plot_opts);
     
     Bmag_grid=reshape(scal_res.val,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
-    figure(2)
+    contor_plot_handle=stfig('3d potential contors','add_stack',1);
     set(gcf,'Color',[1 1 1]);
     clf;
-    nBisosurf=10;
+    nisosurf=10;
     Bmax=max(Bmag_grid(isfinite(Bmag_grid(:))));
     Bmin=min(Bmag_grid(isfinite(Bmag_grid(:))));
-    Bisoval=logspace(log10(Bmin),log10(Bmax),nBisosurf);
+    Bisoval=logspace(log10(Bmin),log10(Bmax),nisosurf);
     Bisoval=Bisoval(1:end);   % cull the min and max
-    cc=viridis(nBisosurf);
+    cc=viridis(nisosurf);
     p={};
     pp=[];
-    for ii=1:nBisosurf
+    for ii=1:nisosurf
         p{ii}=isosurface(plot_scaling*xyz_grid(:,:,:,1),plot_scaling*xyz_grid(:,:,:,2),plot_scaling*xyz_grid(:,:,:,3),Bmag_grid,Bisoval(ii));
         pp(ii)=patch(p{ii},'FaceColor',cc(ii,:),'EdgeColor','none','FaceAlpha',0.15,...
             'DisplayName',sprintf('%0.1g',1e4*Bisoval(ii)));
@@ -60,6 +60,7 @@ function visualise_3d(plot_opts)
     xyz_unit_line=zeros(nnline,3);
     xyz_unit_line(:,3)=linspace(0,1,nnline);
     
+    stfig(contor_plot_handle);
     hold on;
     for ii=1:numel(plot_opts.btrap.b_src)
         elm_param=plot_opts.btrap.b_src(ii).param;
@@ -113,7 +114,7 @@ function visualise_3d(plot_opts)
         end
     end
     sensor_size=30e-3;
-    print('test')
+    stfig(contor_plot_handle);
     if isfield(plot_opts.btrap,'nullr') && isfield(plot_opts.btrap.nullr,'sensor')
         for ii=1:numel(plot_opts.btrap.nullr.sensor)
             start_pt=plot_opts.btrap.nullr.sensor(ii).pos;

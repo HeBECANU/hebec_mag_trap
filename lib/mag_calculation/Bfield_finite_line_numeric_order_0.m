@@ -1,9 +1,11 @@
-function Bout=Bfield_finite_line_numeric(tlim,dlen,curr,rot_vec,xyz)
+function Bout=Bfield_finite_line_numeric_order_0(tlim,dlen,curr,rot_vec,xyz)
 % Bout = Bfield_finite_line
 % B field calculator for single line of current (located at origin, pointing Z-axis)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
 % 20190210 validated to give the same answer as Bfield_path_numerical 
-% TO DO
+% uses direct integration of the Biot–Savart law which makes it fairly slow to converge
+% for a line you should not use this method it is more a validation of the approach
+% is slightly 
 
 %http://web.mit.edu/viz/EM/visualizations/coursenotes/modules/guide09.pdf
 % physical constants
@@ -28,6 +30,7 @@ for ii=1:size(xyz,1)
     %calculate the infentesimal b field vector
     dBvec=cross(dLdt,Rvec)./(vecnorm(Rvec,2,2).^3);
     %combine them all
+    %Bout_trapz(ii,:)=trapz(tvec,dBvec);
     Bout_trapz(ii,:)=trapz(tvec,dBvec);
 end
 Bout=((mu_0*curr)/(4*pi)).*Bout_trapz;

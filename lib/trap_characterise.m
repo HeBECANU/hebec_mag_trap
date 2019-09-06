@@ -1,16 +1,10 @@
 function anal_out=trap_characterise(anal_out,btrap,x0,solve_trapdepth,verbose)
 % Evaluates trap frequencies and center
-%
-% [f0,cent]=trap_characterise(btrap,verbose)
-%
-% f0 is 3x1 array of trap frequencies [Hz] in x,y,z axis
-% trap_cent is 1x3 array of trap center [m]
+% trap_characterise(btrap,verbose)
 %
 % btrap is the trap object to characterise
 % x0 is the initial guess for trap minimum [m]
 % verbose: set to >0 for graphics
-%
-%[f0,trap_cent,B_cent]
 
 global const
 
