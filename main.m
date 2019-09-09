@@ -59,7 +59,7 @@ solve_stpt=0;
 solve_hessian=0;
 
 %% mag trap
-trap_config.v_quad=3.4; %3.4 used in 'normal trap' 14.178 A
+trap_config.v_quad=6.2; %3.4 used in 'normal trap' 14.178 A
 trap_config.v_shunt=0.2;%0.2 used in TO 
 
 trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform assumption)

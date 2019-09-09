@@ -23,6 +23,16 @@ Magnetostatic field calculator for trapping neutral atoms
  ![The sum of the absolute magnitudes of the jacobians](/plots/jacobian_xz.png "Jacobinan Landscape")
  
 
+ # Install
+``` 
+git clone --recurse-submodules -j8 https://github.com/spicydonkey/hebec_mag_trap.git
+```
+then to update 
+```
+git submodule update --recursive --init
+git submodule foreach --recursive git pull origin master
+ 
+ 
 ## To Do
 - find the principle axes of the trap (dont just assume cartesian)
 - implement other trap geometeries
