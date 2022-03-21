@@ -112,13 +112,16 @@ bias_coil.param.radius=Rbias;
 bias_coil.param.current=Ibias;
 bias_coil.param.position=[disp_qb/2,disp_ah/2,0];
 bias_coil.param.rot=pi/2*[1,0,0]; %angle of pointing in theta,phi
-% Trap external bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
-extbias.type='uniform';
-extbias.param=trap_config.Bext;
 
+%start building up the source elements
 btrap.b_src=[];
-btrap.b_src=extbias;
-%add the coils
+% Trap external bias (nuller) [http://dx.doi.org/10.1063/1.2472600]
+if isfield(trap_config,'Bext')
+    extbias.param=trap_config.Bext;
+    extbias.type='uniform';
+    btrap.b_src=extbias;
+end
+% add the coils
 for ii=1:Nturntrap
     trap_coil_temp=trap_coil;
     % shift by wire pitch
@@ -143,22 +146,32 @@ for ii=1:Nturnbias
 end
 
 %add the wires for the bias col
-%TO CHECK THE CURRENTS ARE GOING IN THE RIGHT DIRECTION!
+% the current goes in on the top on one size then in on the bottom of the other side
+% the wire current should all point in the same direction
+%TODO CHECK THE CURRENTS ARE GOING IN THE RIGHT DIRECTION!
 bias_supply_wires_top_pos=[];
 bias_supply_wires_top_pos.type='line';
 bias_supply_wires_top_pos.param.current=bias_coil.param.current;
 bias_supply_wires_top_pos.param.position=bias_coil.param.position+[0,0,bias_coil.param.radius];
 bias_supply_wires_top_pos.param.rot=pi/2*[1,0,0];
 bias_supply_wires_top_pos.param.length=supply_wire_length;
+
 bias_supply_wires_btm_pos=bias_supply_wires_top_pos;
-bias_supply_wires_btm_pos.param.position=bias_coil.param.position+[0,(Nturnbias-1)*pitch_coil,-bias_coil.param.radius];
 bias_supply_wires_btm_pos.param.current=-bias_supply_wires_top_pos.param.current;
-bias_supply_wires_btm_neg=bias_supply_wires_btm_pos;
+bias_supply_wires_btm_pos.param.position=bias_coil.param.position+[0,(Nturnbias-1)*pitch_coil,-bias_coil.param.radius];
+
 bias_supply_wires_top_neg=bias_supply_wires_top_pos;
-bias_supply_wires_btm_neg.param.position=[1,-1,1].*bias_supply_wires_btm_neg.param.position;
-bias_supply_wires_btm_neg.param.rot=-1*bias_supply_wires_btm_neg.param.rot;
+bias_supply_wires_top_neg.param.current=-bias_supply_wires_top_pos.param.current; % flipped because wire is rotated, current should point in the same direction as bias_supply_wires_top_pos
 bias_supply_wires_top_neg.param.position=[1,-1,1].*bias_supply_wires_top_neg.param.position;
 bias_supply_wires_top_neg.param.rot=-1*bias_supply_wires_top_neg.param.rot;
+
+bias_supply_wires_btm_neg=bias_supply_wires_btm_pos;
+bias_supply_wires_top_neg.param.current=bias_supply_wires_top_pos.param.current;
+bias_supply_wires_btm_neg.param.position=[1,-1,1].*bias_supply_wires_btm_neg.param.position;
+bias_supply_wires_btm_neg.param.rot=-1*bias_supply_wires_btm_neg.param.rot;
+
+
+
 btrap.b_src=[btrap.b_src,bias_supply_wires_top_pos,bias_supply_wires_top_neg,bias_supply_wires_btm_pos,bias_supply_wires_btm_neg];
 
 
@@ -168,15 +181,21 @@ trap_supply_wires_top_pos.param.current=trap_coil.param.current;
 trap_supply_wires_top_pos.param.position=trap_coil.param.position+[0,0,trap_coil.param.radius];
 trap_supply_wires_top_pos.param.rot=pi/2*[1,0,0];
 trap_supply_wires_top_pos.param.length=supply_wire_length;
+
 trap_supply_wires_btm_pos=trap_supply_wires_top_pos;
-trap_supply_wires_btm_pos.param.position=trap_coil.param.position+[0,(Nturntrap-1)*pitch_coil,-trap_coil.param.radius];
 trap_supply_wires_btm_pos.param.current=-trap_supply_wires_top_pos.param.current;
-trap_supply_wires_btm_neg=trap_supply_wires_btm_pos;
+trap_supply_wires_btm_pos.param.position=trap_coil.param.position+[0,(Nturntrap-1)*pitch_coil,-trap_coil.param.radius];
+
 trap_supply_wires_top_neg=trap_supply_wires_top_pos;
-trap_supply_wires_btm_neg.param.position=[1,-1,1].*trap_supply_wires_btm_neg.param.position;
-trap_supply_wires_btm_neg.param.rot=-1*trap_supply_wires_btm_neg.param.rot;
+trap_supply_wires_top_neg.param.current=-trap_supply_wires_top_pos.param.current;
 trap_supply_wires_top_neg.param.position=[1,-1,1].*trap_supply_wires_top_neg.param.position;
 trap_supply_wires_top_neg.param.rot=-1*trap_supply_wires_top_neg.param.rot;
+
+trap_supply_wires_btm_neg=trap_supply_wires_btm_pos;
+trap_supply_wires_btm_pos.param.current=trap_supply_wires_top_pos.param.current;
+trap_supply_wires_btm_neg.param.position=[1,-1,1].*trap_supply_wires_btm_neg.param.position;
+trap_supply_wires_btm_neg.param.rot=-1*trap_supply_wires_btm_neg.param.rot;
+
 btrap.b_src=[btrap.b_src,trap_supply_wires_top_pos,trap_supply_wires_top_neg,trap_supply_wires_btm_pos,trap_supply_wires_btm_neg];
 
 

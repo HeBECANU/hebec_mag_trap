@@ -12,7 +12,7 @@ global const
 % trap center: point of minimum B magnitude
 %%% Find trap center with current trap config
 % find X to minimise $Bmag$ from trap_eval(btrap,x_vec) 
-options = optimset('TolX',1e-8);
+options = optimset('TolX',1e-9);
 anal_out.trap_cen.pos=fminsearch(@(x) trap_eval(btrap,x),x0,options);
 
 %calculate the trap center field

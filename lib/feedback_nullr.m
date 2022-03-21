@@ -1,7 +1,7 @@
 function [btrap,nuller_status]=feedback_nullr(btrap,nullr_opt)
 %
 if ~isfield(nullr_opt,'do_opt') || nullr_opt.do_opt
-    options = optimset('PlotFcns',@optimplotfval,'TolFun',1e-8,'MaxFunEvals',1e3);
+    options = optimset('PlotFcns',@optimplotfval,'TolFun',1e-6,'MaxFunEvals',1e3);
     nuller_curr_opt=fminsearch(@(x) evaluate_trail_nuller(btrap,nullr_opt,x),...
         nullr_opt.current_guess,options);
     nullr_opt.current=nuller_curr_opt;

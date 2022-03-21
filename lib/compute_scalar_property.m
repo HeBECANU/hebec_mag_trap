@@ -3,7 +3,7 @@ xyz_list=scal_prop_opt.xyz_list;
 scal_res=[];
 switch scal_prop_opt.type
         case 'b_scal'
-            plot_zlabel='B (Gauss)';
+            plot_zlabel='B (Tesla)';
             plot_title='Salar Magnetic Potential';
             Bmag_list=trap_eval(scal_prop_opt.btrap,xyz_list);
             val_list=Bmag_list;
@@ -43,9 +43,14 @@ switch scal_prop_opt.type
             ref_vec_pointing=scal_prop_opt.ref_vec_pointing;
             ref_vec_angle=scal_prop_opt.ref_vec_angle;
             val_list=compute_polar_angle_between_vec(Bvec_list,ref_vec_pointing,ref_vec_angle);
+            if isfield(scal_prop_opt,'unwrap_phase') && scal_prop_opt.unwrap_phase
+                val_list=unwrap(val_list,pi/2);
+            end
             if isfield(scal_prop_opt,'convert_to_deg') && scal_prop_opt.convert_to_deg
                 val_list=rad2deg(val_list);
             end
+
+            
              
         case 'b_comp'
             [~,Bvec_list]=trap_eval(scal_prop_opt.btrap,xyz_list);
@@ -78,7 +83,7 @@ switch scal_prop_opt.type
                 direction_str='mix';
             end
             plot_title=sprintf('Magnetic Component in %s',direction_str);
-            plot_zlabel='B (Gauss)';
+            plot_zlabel='B (Tesla)';
         case 'curv_l2norm' %calculate the magnitude of the hessian matrix
             plot_zlabel='d^2B/dx^2 (Gauss/m^2)';
             plot_title='L2 norm of diagonal emements of the Hessian of the potential';

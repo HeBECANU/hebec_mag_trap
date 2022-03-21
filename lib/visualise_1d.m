@@ -1,6 +1,9 @@
-function visualise_1d(plot_opts)
+function vis_out=visualise_1d(plot_opts)
     %plots a scalar value along a line
+    % starts with a line along the x axis
     %can rotate that line about the center point 
+    vis_out=[];
+    vis_out.plot_cen=plot_opts.plot_cen;
     
     plot_range=plot_opts.range;
     plot_cen=plot_opts.plot_cen;
@@ -9,7 +12,8 @@ function visualise_1d(plot_opts)
    
     % grid in unrotated ref frame
     xyz_list=zeros(plot_opts.nsamp(1),3);
-    xyz_list(:,1)=linspace(plot_range(1,1),plot_range(1,2),plot_opts.nsamp(1));
+    x_list=linspace(plot_range(1,1),plot_range(1,2),plot_opts.nsamp(1));
+    xyz_list(:,1)=x_list;
     %optimizations could be implmented here to not shift or rotate in the null cases
     xyz_list=xyz_list*rot_mat;
     xyz_list=xyz_list+plot_cen; 
@@ -18,9 +22,14 @@ function visualise_1d(plot_opts)
     scal_res=compute_scalar_property(plot_opts);
     
     result_vec=scal_res.val;
-    stfig('1d plot','add_stack',1) 
+    vis_out.fig_handle=stfig('1d plot','add_stack',1) ;
+    
+    vis_out.xdat=x_list;
+    vis_out.xyz_samp=xyz_list(:,1)-plot_cen(1);
+    vis_out.ydat=result_vec;
     clf;
-    plot((xyz_list(:,1)-plot_cen(1))*1e3,result_vec,'k');
+    
+    plot(vis_out.xdat*1e3,result_vec,'k');
     if is_rotated % put a ' to indicate the roated cord frame
         xlabel("X' (mm)");
         title(strcat(scal_res.plot_title,' (rotated cord.)'))

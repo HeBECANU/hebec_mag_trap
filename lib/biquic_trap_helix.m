@@ -57,12 +57,13 @@ Nturnbias=18+0.5;
 Nturntrap=10+0.5;
 
 %measurments
-
+% was 21.5e-3; as of 2020-06-21
 disp_ah=21.5e-3;      % AH separation (across the chamber)
 disp_qb=19.43e-3;    % trap-bias separation (in the plane of the bi-quic)
 
 supply_wire_length=400e-3; %supply wire length
 
+% specity the resistance of the coils for power calculations
 res_trap=49.3e-3;
 res_baias=71.8e-3;
 
@@ -131,14 +132,15 @@ btrap.b_src=extbias;
 btrap.b_src=[btrap.b_src,trap_coil_right,bias_coil_right];
 
 trap_coil_left=trap_coil_right;
+trap_coil_left.param.turns=-trap_coil_left.param.turns;
+trap_coil_left.param.position=[1,-1,1].*trap_coil_right.param.position;
+
 bias_coil_left=bias_coil_right;
 bias_coil_left.param.turns=-bias_coil_left.param.turns;
-trap_coil_left.param.turns=-trap_coil_left.param.turns;
 bias_coil_left.param.position=[1,-1,1].*bias_coil_right.param.position;
-trap_coil_left.param.position=[1,-1,1].*trap_coil_right.param.position;
 btrap.b_src=[btrap.b_src,trap_coil_left,bias_coil_left];
 
-
+% old loop code kept here as reference
 % btrap.b_src=[];
 % btrap.b_src=extbias;
 % %add the coils
@@ -165,42 +167,89 @@ btrap.b_src=[btrap.b_src,trap_coil_left,bias_coil_left];
 %     btrap.b_src=[btrap.b_src,bias_coil_temp];
 % end
 
-%add the wires for the bias col
+
+%% add the wires for the bias col
+% the current goes in on the top on one size then in on the bottom of the other side
+% the wire current should all point in the same direction
 %TO CHECK THE CURRENTS ARE GOING IN THE RIGHT DIRECTION!
 bias_supply_wires_top_pos=[];
 bias_supply_wires_top_pos.type='line';
 bias_supply_wires_top_pos.param.current=bias_coil_right.param.current;
-bias_supply_wires_top_pos.param.position=bias_coil_right.param.position+[0,0,bias_coil_right.param.radius];
+bias_supply_wires_top_pos.param.position=bias_coil_right.param.position+[0,0,bias_coil_right.param.radius+pitch_coil];
 bias_supply_wires_top_pos.param.rot=pi/2*[1,0,0];
 bias_supply_wires_top_pos.param.length=supply_wire_length;
+
+% the wire that comes in to the top of the coil has to come down by the coil pitch into the helix by pitch_coil
+bias_supply_wires_top_pos_ic.type='line';
+bias_supply_wires_top_pos_ic.param.current=bias_coil_right.param.current;
+bias_supply_wires_top_pos_ic.param.position=bias_coil_right.param.position+[0,0,bias_coil_right.param.radius];
+bias_supply_wires_top_pos_ic.param.rot=pi/2*[0,0,0];
+bias_supply_wires_top_pos_ic.param.length=pitch_coil;
+
 bias_supply_wires_btm_pos=bias_supply_wires_top_pos;
-bias_supply_wires_btm_pos.param.position=bias_coil_right.param.position+[0,(Nturnbias-1)*pitch_coil,-bias_coil_right.param.radius];
 bias_supply_wires_btm_pos.param.current=-bias_supply_wires_top_pos.param.current;
-bias_supply_wires_btm_neg=bias_supply_wires_btm_pos;
+bias_supply_wires_btm_pos.param.position=bias_coil_right.param.position+[0,(Nturnbias)*pitch_coil,-bias_coil_right.param.radius];
+
 bias_supply_wires_top_neg=bias_supply_wires_top_pos;
-bias_supply_wires_btm_neg.param.position=[1,-1,1].*bias_supply_wires_btm_neg.param.position;
-bias_supply_wires_btm_neg.param.rot=-1*bias_supply_wires_btm_neg.param.rot;
+bias_supply_wires_top_neg.param.current=-bias_supply_wires_top_pos.param.current; % flipped because wire is rotated, current should point in the same direction as bias_supply_wires_top_pos
 bias_supply_wires_top_neg.param.position=[1,-1,1].*bias_supply_wires_top_neg.param.position;
 bias_supply_wires_top_neg.param.rot=-1*bias_supply_wires_top_neg.param.rot;
-btrap.b_src=[btrap.b_src,bias_supply_wires_top_pos,bias_supply_wires_top_neg,bias_supply_wires_btm_pos,bias_supply_wires_btm_neg];
+
+bias_supply_wires_top_neg_ic=bias_supply_wires_top_pos_ic;
+bias_supply_wires_top_neg_ic.param.current=bias_supply_wires_top_neg.param.current; % flipped because wire is rotated, current should point in the same direction as bias_supply_wires_top_pos
+bias_supply_wires_top_neg_ic.param.position=[1,-1,1].*bias_supply_wires_top_neg_ic.param.position;
+bias_supply_wires_top_neg_ic.param.rot=-1*bias_supply_wires_top_neg_ic.param.rot;
 
 
+bias_supply_wires_btm_neg=bias_supply_wires_btm_pos;
+bias_supply_wires_btm_neg.param.current=bias_supply_wires_top_pos.param.current;
+bias_supply_wires_btm_neg.param.position=[1,-1,1].*bias_supply_wires_btm_neg.param.position;
+bias_supply_wires_btm_neg.param.rot=-1*bias_supply_wires_btm_neg.param.rot;
+
+btrap.b_src=[btrap.b_src,bias_supply_wires_top_pos_ic,bias_supply_wires_top_pos,bias_supply_wires_top_neg,...
+    bias_supply_wires_top_neg_ic,bias_supply_wires_btm_pos,bias_supply_wires_btm_neg];
+
+%% add wires for the trap coil
 trap_supply_wires_top_pos=[];
 trap_supply_wires_top_pos.type='line';
 trap_supply_wires_top_pos.param.current=trap_coil_right.param.current;
-trap_supply_wires_top_pos.param.position=trap_coil_right.param.position+[0,0,trap_coil_right.param.radius];
+trap_supply_wires_top_pos.param.position=trap_coil_right.param.position+[0,0,trap_coil_right.param.radius+pitch_coil];
 trap_supply_wires_top_pos.param.rot=pi/2*[1,0,0];
 trap_supply_wires_top_pos.param.length=supply_wire_length;
+
+% the wire that comes in to the top of the coil has to come down by the coil pitch into the helix by pitch_coil
+bias_supply_wires_top_pos_ic.type='line';
+bias_supply_wires_top_pos_ic.param.current=trap_supply_wires_top_pos.param.current;
+bias_supply_wires_top_pos_ic.param.position=trap_coil_right.param.position+[0,0,trap_coil_right.param.radius];
+bias_supply_wires_top_pos_ic.param.rot=pi/2*[0,0,0];
+bias_supply_wires_top_pos_ic.param.length=pitch_coil;
+
 trap_supply_wires_btm_pos=trap_supply_wires_top_pos;
-trap_supply_wires_btm_pos.param.position=trap_coil_right.param.position+[0,(Nturntrap-1)*pitch_coil,-trap_coil_right.param.radius];
 trap_supply_wires_btm_pos.param.current=-trap_supply_wires_top_pos.param.current;
-trap_supply_wires_btm_neg=trap_supply_wires_btm_pos;
+trap_supply_wires_btm_pos.param.position=trap_coil_right.param.position+[0,(Nturntrap)*pitch_coil,-trap_coil_right.param.radius];
+trap_supply_wires_btm_pos.param.current=-trap_supply_wires_top_pos.param.current;
+
 trap_supply_wires_top_neg=trap_supply_wires_top_pos;
-trap_supply_wires_btm_neg.param.position=[1,-1,1].*trap_supply_wires_btm_neg.param.position;
-trap_supply_wires_btm_neg.param.rot=-1*trap_supply_wires_btm_neg.param.rot;
+trap_supply_wires_top_neg.param.current=-trap_supply_wires_top_pos.param.current;
 trap_supply_wires_top_neg.param.position=[1,-1,1].*trap_supply_wires_top_neg.param.position;
 trap_supply_wires_top_neg.param.rot=-1*trap_supply_wires_top_neg.param.rot;
-btrap.b_src=[btrap.b_src,trap_supply_wires_top_pos,trap_supply_wires_top_neg,trap_supply_wires_btm_pos,trap_supply_wires_btm_neg];
+
+% the wire that comes in to the top of the coil has to come down by the coil pitch into the helix by pitch_coil
+bias_supply_wires_top_neg_ic.type='line';
+bias_supply_wires_top_neg_ic.param.current=trap_supply_wires_top_neg.param.current;
+bias_supply_wires_top_neg_ic.param.position=[1,-1,1].*bias_supply_wires_top_pos_ic.param.position;
+bias_supply_wires_top_neg_ic.param.rot=pi/2*[0,0,0];
+bias_supply_wires_top_neg_ic.param.length=pitch_coil;
+
+trap_supply_wires_btm_neg=trap_supply_wires_btm_pos;
+trap_supply_wires_btm_neg.param.current=trap_supply_wires_top_pos.param.current;
+trap_supply_wires_btm_neg.param.position=[1,-1,1].*trap_supply_wires_btm_neg.param.position;
+trap_supply_wires_btm_neg.param.rot=-1*trap_supply_wires_btm_neg.param.rot;
+
+btrap.b_src=[btrap.b_src,bias_supply_wires_top_pos_ic,...
+            trap_supply_wires_top_pos,trap_supply_wires_top_neg,...
+            trap_supply_wires_btm_pos,...
+            bias_supply_wires_top_neg_ic,trap_supply_wires_btm_neg];
 
 
 btrap.power={};
