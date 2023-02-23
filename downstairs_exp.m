@@ -101,31 +101,25 @@ trap_config.Bext=[0.000,00,0.00].*10^-5;%1e-4*[0,0,0];     % external bias field
 %------------- END USER Config-------------------------
 
 %add all subfolders to the path
-this_folder = fileparts(which(mfilename));
-% Add that folder plus all subfolders to the path.
-addpath(genpath(this_folder));
+addpath('./lib/Core_BEC_Analysis/lib/') %add the path to set_up_project_path
+set_up_project_path
 
 hebec_constants
 
 
-if exist('btrap','var') && isfield(btrap,'nullr') && isfield(btrap.nullr,'current')
-    curr_guess=btrap.nullr.current;
-else
-    curr_guess=[[1,1];[1,1];[1,1]];
-end
 
+%% construct the biquick trap
 btrap=[];
-
 %btrap=biquic_trap_loops(btrap,trap_config);  % build biquic
-btrap=biquic_trap_helix(btrap,trap_config);  % build biquic
+btrap=biquic_trap_helix(btrap,trap_config);  % build biquic trap
 
 
+%% add the nuller sensors
 nullr_opt=[];
 nullr_opt.radius=500e-3;
 nullr_opt.inset=90e-3;
 nullr_opt.do_opt=true;
 nullr_opt.sensor=[];
-
 
 %%% CORD system
 % x +ve towards LVIS
@@ -156,13 +150,23 @@ nullr_opt.sensor(5).dirn=[0,0,-1];
 % 96-148
 nullr_opt.sensor(6).pos=[-45,-55,-52]*1e-3;
 nullr_opt.sensor(6).dirn=[0,0,1];
-
 nullr_opt.avg_sensors=[2,3];
+
+
+
+if exist('btrap','var') && isfield(btrap,'nullr') && isfield(btrap.nullr,'current')
+    curr_guess=btrap.nullr.current;
+else
+    curr_guess=[[1,1];[1,1];[1,1]];
+end
+
 nullr_opt.current_guess=curr_guess;
+nullr_opt.set_pt_v=[0.0,0,0,0,20.72];
+% apply nuller feedback
 btrap=feedback_nullr(btrap,nullr_opt);
 
 
-
+%%
 anal_out=[];
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies

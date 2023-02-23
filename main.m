@@ -76,10 +76,12 @@ trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform assumption
 %trap_config.v_shunt=0.75; 
 %------------- END USER Config-------------------------
 
-%add all subfolders to the path
-this_folder = fileparts(which(mfilename));
-% Add that folder plus all subfolders to the path.
-addpath(genpath(this_folder));
+% %add all subfolders to the path
+% this_folder = fileparts(which(mfilename));
+% % Add that folder plus all subfolders to the path.
+% addpath(genpath(this_folder));
+addpath('./lib/Core_BEC_Analysis/lib/')
+set_up_project_path
 
 hebec_constants
 % Build BiQUIC trap

@@ -5,6 +5,10 @@
 % we will validate by samping in ±2 across all dimensions 
 % ------------------START USER Config--------------
 xyz_samp=(rand(10,3)-0.5)*4;
+xyz_samp=cat(1,xyz_samp,[0,0,1]);
+xyz_samp=cat(1,xyz_samp,[0,1,0]);
+xyz_samp=cat(1,xyz_samp,[1,0,0]);
+
 rot_vec=[0.1,0,0];
 verbose=2;
 frac_tolerance=1e-9;
@@ -27,7 +31,7 @@ res_a=Bfield_finite_line_analytic(tlim,curr,rot_vec,xyz_samp);
 time_a=toc;
 
 tic
-res_b=Bfield_path_numeric(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
+res_b=Bfield_path_numeric_order_0(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
 time_b=toc;
 
 if verbose>1
@@ -52,8 +56,8 @@ end
 
 fail_count=fail_count+fail_test;
 fprintf('\n\n')
-%% Bfield_finite_line_numeric  vs  Bfield_path_numeric
-fprintf('Bfield_finite_line_numeric vs Bfield_path_numeric \n')
+%% Bfield_finite_line_numeric_order_0  vs  Bfield_path_numeric
+fprintf('Bfield_finite_line_numeric_order_0 vs Bfield_path_numeric \n')
 % create a path of a line
 syms t
 path_line=symfun([0,0,t],t);
@@ -63,11 +67,11 @@ dlen=1e-3;
 tlim=[0,len];
 
 tic
-res_a=Bfield_finite_line_numeric(tlim,dlen,curr,rot_vec,xyz_samp);
+res_a=Bfield_finite_line_numeric_order_0(tlim,dlen,curr,rot_vec,xyz_samp);
 time_a=toc;
 
 tic
-res_b=Bfield_path_numeric(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
+res_b=Bfield_path_numeric_order_0(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
 time_b=toc;
 
 res_diff=res_a-res_b;
@@ -78,7 +82,7 @@ res_diff_mean=mean(res_frac(:));
 res_diff_norm=vecnorm(res_frac,2,2);
 
 if verbose>1
-    fprintf('INFO: eval time Bfield_finite_line_numeric   %.3g\n',time_a)
+    fprintf('INFO: eval time Bfield_finite_line_numeric_order_0   %.3g\n',time_a)
     fprintf('INFO: eval time Bfield_path_numeric          %.3g\n', time_b)
     fprintf('INFO: rel time                               %.3g\n', time_a/time_b)
 end
@@ -99,19 +103,21 @@ fprintf('\n\n')
 fprintf('Bfield_loop_analytic vs Bfield_path_numeric \n')
 % create a path of a line
 syms t
-radius=1;
+radius=1+1e-9;
 pitch=1;
 path_line=symfun([radius*cos(t), radius*sin(t), 0],t);
 len=2*pi;
 curr=1;
-dlen=1e-3;
+dlen=1e-5;
 tlim=[0,len];
+
+%res_a=Bfield_loop_analytic(radius,curr,[0,0,0],[[0,0,1];[0,1,-1]])
 
 tic
 res_a=Bfield_loop_analytic(radius,curr,rot_vec,xyz_samp);
 time_a=toc;
 tic
-res_b=Bfield_path_numeric(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
+res_b=Bfield_path_numeric_order_0(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
 time_b=toc;
 
 res_diff=res_a-res_b;
@@ -145,7 +151,7 @@ radius=1;
 pitch=1;
 path_line=symfun([radius*cos(t), radius*sin(t), pitch*t/(2*pi)],t);
 curr=1;
-dlen=1e-3;
+dlen=1e-5;
 turn=[0,1];
 tlim=turn*2*pi;
 
@@ -153,7 +159,7 @@ tic
 res_a=Bfield_helix_numeric(radius,pitch,turn,dlen,curr,rot_vec,xyz_samp);
 time_a=toc;
 tic
-res_b=Bfield_path_numeric(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
+res_b=Bfield_path_numeric_order_0(path_line,tlim,dlen,curr,rot_vec,xyz_samp);
 time_b=toc;
 
 res_diff=res_a-res_b;
@@ -179,8 +185,8 @@ end
 fail_count=fail_count+fail_test;
 
 fprintf('\n\n')
-%% Bfield_finite_line_numeric  vs  Bfield_loop_analytic 
-fprintf('Bfield_loop vs Bfield_finite_line_numeric\n')
+%% Bfield_finite_line_numeric_order_0  vs  Bfield_loop_analytic 
+fprintf('Bfield_loop vs Bfield_finite_line_numeric_order_0\n')
 
 % create a loop
 tic
@@ -199,7 +205,7 @@ tic
 
 tic
 btrap=[];
-btrap.b_src=loop_from_lines(1,50000,1,'ana');
+btrap.b_src=loop_from_lines(1,50000,1,'analytic');
 res_b=trap_eval(btrap,xyz_samp);
 time_b=toc;
 
@@ -213,7 +219,7 @@ res_diff_norm=vecnorm(res_frac,2,2);
 
 if verbose>1
     fprintf('INFO: eval time Bfield_loop                    %.3g\n',time_a)
-    fprintf('INFO: eval time Bfield_finite_line_numeric     %.3g\n', time_b)
+    fprintf('INFO: eval time Bfield_finite_line_numeric_order_0     %.3g\n', time_b)
     fprintf('INFO: rel time                                 %.3g\n', time_a/time_b)
 end
 fail_test=(abs(res_diff_max)>frac_tolerance);

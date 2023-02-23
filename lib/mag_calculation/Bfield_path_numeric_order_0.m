@@ -1,4 +1,4 @@
-function Bout=Bfield_path_numerical(path_sym,tlim,dt,curr,rot_vec,xyz)
+function Bout=Bfield_path_numeric_order_0(path_sym,tlim,dt,curr,rot_vec,xyz)
 % Bout = Bfield_path_numerical
 % B field calculator for arb path of current 
 % example
@@ -16,7 +16,7 @@ function Bout=Bfield_path_numerical(path_sym,tlim,dt,curr,rot_vec,xyz)
 % physical constants
 %global const
 %mu_0=const.mu0;  
-%hack to get to work in parfor
+% for parfor usage we specify the physical constants
 mu_0=1.2566370614*10^-6;
 
 dpath_sym=diff(path_sym,'t');

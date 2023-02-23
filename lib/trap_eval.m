@@ -33,7 +33,7 @@ for ii=1:ncomps
             dlen=elm_param.dlen;
             rot_vec=elm_param.rot;
             rel_xyz=xyz_list-pos;
-            Bxyz_this=Bfield_finite_line_numeric(tlim,dlen,curr,rot_vec,rel_xyz);
+            Bxyz_this=Bfield_finite_line_numeric_order_1(tlim,dlen,curr,rot_vec,rel_xyz);
         case {'line','ana line','analytic line'}       
             tlim=[0,elm_param.length];
             curr=elm_param.current;

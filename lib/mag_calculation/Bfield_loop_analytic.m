@@ -4,6 +4,7 @@ function Bout=Bfield_loop(radius,curr,rot_vec,xyz)
 % Bout is a 3x1 cell-array: {Bx,By,Bz} defined at points x,y,z
 % TO DO
 %CHECK ROTATION OF B VECTOR IS THE RIGHT SIGN
+% fix up nan output when on axis of the coil
 
 % physical constants
 %global const
@@ -26,6 +27,7 @@ ell_k2=4*radius*rho./((radius+rho).^2+z.^2);      % k^2 elliptic parameter
 
 Bzz=(mu_0*curr./(2*pi)).*(1./sqrt((radius+rho).^2+z.^2)).*(K+E.*(radius^2-rho.^2-z.^2)./((radius-rho).^2+z.^2));
 Brr=(mu_0*curr./(2*pi*rho)).*(z./sqrt((radius+rho).^2+z.^2)).*(-K+E.*(radius^2+rho.^2+z.^2)./((radius-rho).^2+z.^2));
+Brr(rho==0)=0; %handle the case when the point is on the axis of the loop
 Bzz(~isfinite(Bzz))=NaN;    % Inf --> NaN
 Brr(~isfinite(Brr))=NaN;
 

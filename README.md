@@ -30,7 +30,7 @@ git clone --recurse-submodules -j8 https://github.com/spicydonkey/hebec_mag_trap
 ```
 then to update 
 ```
-git submodule update --remote --merge
+git submodule update --init --recursive --remote --merge
 ```
 
  # Install
@@ -46,7 +46,10 @@ git submodule foreach --recursive git pull origin master
 ## To Do
 contributors welcome! Drop me an [email](mailto:bryce.m.henson+github.hebec_mag_trap@gmail.com?subject=I%20would%20Like%20to%20Contribute[github][hebec_mag_trap]) .
 - [ ] Documentation
-- [ ] fix trap depth caluclation to work in 3d
+- [ ] implement checking that there is no gaps in the current
+      - get a handle on the physics in order to see what is violated
+- [ ] rewrite as object oreinted code
+- [ ] fix trap depth calculation to work in 3d
 - [ ] implement flat spiral current source
 - find the principle axes of the trap (dont just assume cartesian)
 - implement other trap geometeries
@@ -56,6 +59,9 @@ contributors welcome! Drop me an [email](mailto:bryce.m.henson+github.hebec_mag_
   - optical
 - [x] implement current helix
 - [x] build comparative test of sources
+
+## References
+- [mag sources](web.mit.edu/8.02t/www/802TEAL3D/visualizations/coursenotes/modules/guide09.pdf)
 
 ## Contributions
 This project would not have been possible without the many open source tools that it is based on.

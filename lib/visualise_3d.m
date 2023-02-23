@@ -5,10 +5,13 @@ function visualise_3d(plot_opts)
     end
 
     plot_range=plot_opts.range;
+    
     if plot_opts.zero_on_cen
-        trap_cen=plot_opts.cen;
+        axes_offset=plot_opts.cen;
+        plot_range=plot_range+repmat(plot_opts.cen',1,2);
     else
-        trap_cen=zeros(1,3);
+        plot_range=plot_range+repmat(plot_opts.cen',1,2);
+        axes_offset=zeros(1,3);
     end
     % grid in trap centered ref frame
     xyz_grid=[];
@@ -17,24 +20,25 @@ function visualise_3d(plot_opts)
              linspace(plot_range(2,1),plot_range(2,2),plot_opts.nsamp(2)),...
              linspace(plot_range(3,1),plot_range(3,2),plot_opts.nsamp(3)));    % meshgrid
     xyz_list=reshape(xyz_grid,[size(xyz_grid,1)*size(xyz_grid,2)*size(xyz_grid,3),3]);
-    xyz_list=xyz_list+trap_cen;
     plot_opts.xyz_list=xyz_list;
     scal_res=compute_scalar_property(plot_opts);
     
     Bmag_grid=reshape(scal_res.val,[size(xyz_grid,1),size(xyz_grid,2),size(xyz_grid,3)]);
-    figure(2)
+    contor_plot_handle=stfig('3d potential contors','add_stack',1);
     set(gcf,'Color',[1 1 1]);
     clf;
-    nBisosurf=10;
+    nisosurf=10;
     Bmax=max(Bmag_grid(isfinite(Bmag_grid(:))));
     Bmin=min(Bmag_grid(isfinite(Bmag_grid(:))));
-    Bisoval=logspace(log10(Bmin),log10(Bmax),nBisosurf);
+    Bisoval=logspace(log10(Bmin),log10(Bmax),nisosurf);
     Bisoval=Bisoval(1:end);   % cull the min and max
-    cc=viridis(nBisosurf);
+    cc=viridis(nisosurf);
     p={};
     pp=[];
-    for ii=1:nBisosurf
-        p{ii}=isosurface(plot_scaling*xyz_grid(:,:,:,1),plot_scaling*xyz_grid(:,:,:,2),plot_scaling*xyz_grid(:,:,:,3),Bmag_grid,Bisoval(ii));
+    for ii=1:nisosurf
+        p{ii}=isosurface(plot_scaling*(xyz_grid(:,:,:,1)-axes_offset(1)),...
+            plot_scaling*(xyz_grid(:,:,:,2)-axes_offset(2)),...
+            plot_scaling*(xyz_grid(:,:,:,3)-axes_offset(3)),Bmag_grid,Bisoval(ii));
         pp(ii)=patch(p{ii},'FaceColor',cc(ii,:),'EdgeColor','none','FaceAlpha',0.15,...
             'DisplayName',sprintf('%0.1g',1e4*Bisoval(ii)));
     end
@@ -43,13 +47,6 @@ function visualise_3d(plot_opts)
     view(3);
     camlight;
     lighting gouraud;
-    xlim(plot_range(1,:)*plot_scaling)
-    ylim(plot_range(2,:)*plot_scaling)
-    zlim(plot_range(3,:)*plot_scaling)
-
-    xlabel('X [mm]');
-    ylabel('Y [mm]');
-    zlabel('Z [mm]');
 
     nnring=100;
     phi=linspace(0,2*pi,nnring);
@@ -60,6 +57,7 @@ function visualise_3d(plot_opts)
     xyz_unit_line=zeros(nnline,3);
     xyz_unit_line(:,3)=linspace(0,1,nnline);
     
+    stfig(contor_plot_handle);
     hold on;
     for ii=1:numel(plot_opts.btrap.b_src)
         elm_param=plot_opts.btrap.b_src(ii).param;
@@ -74,9 +72,11 @@ function visualise_3d(plot_opts)
             xyz_pos=xyz_pos*rot_mat+pos;
             
             % draw this coil
-            
-            plot3(plot_scaling*xyz_pos(:,1),plot_scaling*xyz_pos(:,2),plot_scaling*xyz_pos(:,3),...
+            plot3(plot_scaling*(xyz_pos(:,1)-axes_offset(1)),...
+                  plot_scaling*(xyz_pos(:,2)-axes_offset(2)),...
+                  plot_scaling*(xyz_pos(:,3)-axes_offset(3)),...
                 'Color','k','LineWidth',2);
+
         end
         if isequal(plot_opts.btrap.b_src(ii).type,'helix')
             % transform from unit ring
@@ -94,8 +94,9 @@ function visualise_3d(plot_opts)
             xyz_pos=wire_pos*rot_mat+pos;
             
             % draw this coil
-            
-            plot3(plot_scaling*xyz_pos(:,1),plot_scaling*xyz_pos(:,2),plot_scaling*xyz_pos(:,3),...
+            plot3(plot_scaling*(xyz_pos(:,1)-axes_offset(1)),...
+                  plot_scaling*(xyz_pos(:,2)-axes_offset(2)),...
+                  plot_scaling*(xyz_pos(:,3)-axes_offset(3)),...
                 'Color','k','LineWidth',2);
         end
         if isequal(plot_opts.btrap.b_src(ii).type,'line')
@@ -108,24 +109,31 @@ function visualise_3d(plot_opts)
             
             % draw this coil
             
-            plot3(plot_scaling*xyz_pos(:,1),plot_scaling*xyz_pos(:,2),plot_scaling*xyz_pos(:,3),...
+            plot3(plot_scaling*(xyz_pos(:,1)-axes_offset(1)),...
+                  plot_scaling*(xyz_pos(:,2)-axes_offset(2)),...
+                  plot_scaling*(xyz_pos(:,3)-axes_offset(3)),...
                 'Color','k','LineWidth',2);
         end
     end
     sensor_size=30e-3;
-    print('test')
+    stfig(contor_plot_handle);
     if isfield(plot_opts.btrap,'nullr') && isfield(plot_opts.btrap.nullr,'sensor')
         for ii=1:numel(plot_opts.btrap.nullr.sensor)
             start_pt=plot_opts.btrap.nullr.sensor(ii).pos;
             norm_dirn=plot_opts.btrap.nullr.sensor(ii).dirn/norm(plot_opts.btrap.nullr.sensor(ii).dirn);
             end_pt=start_pt+sensor_size*norm_dirn;
-            mArrow3(plot_scaling*start_pt,plot_scaling*end_pt,'color','red','stemWidth',1,'facealpha',0.5);
+            mArrow3(plot_scaling*(start_pt-axes_offset),plot_scaling*(end_pt-axes_offset),'color','red','stemWidth',1,'facealpha',0.5);
         end
     end
     
-    xlim(plot_range(1,:)*plot_scaling)
-    ylim(plot_range(2,:)*plot_scaling)
-    zlim(plot_range(3,:)*plot_scaling)
+    xlim((plot_range(1,:)-axes_offset(1))*plot_scaling)
+    ylim((plot_range(2,:)-axes_offset(2))*plot_scaling)
+    zlim((plot_range(3,:)-axes_offset(3))*plot_scaling)
+    xlabel('X [mm]');
+    ylabel('Y [mm]');
+    zlabel('Z [mm]');
+
+
     hold off;
 pause(0.01)
 

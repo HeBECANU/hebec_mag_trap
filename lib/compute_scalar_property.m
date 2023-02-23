@@ -3,12 +3,56 @@ xyz_list=scal_prop_opt.xyz_list;
 scal_res=[];
 switch scal_prop_opt.type
         case 'b_scal'
-            plot_zlabel='B (Gauss)';
+            plot_zlabel='B (Tesla)';
             plot_title='Salar Magnetic Potential';
             Bmag_list=trap_eval(scal_prop_opt.btrap,xyz_list);
             val_list=Bmag_list;
+        case  'b_angle' %compute the angle between the magnetic feild vector and the reference vector
+            [~,Bvec_list]=trap_eval(scal_prop_opt.btrap,xyz_list);
+            plot_zlabel='Angle with B field';
+            plot_title='Salar Magnetic Potential';
+           
+            if size(scal_prop_opt.ref_vec,2)~=size(xyz_list,2)
+                error('wrong number of spatial dimensions')
+            elseif size(scal_prop_opt.ref_vec,1)~=size(xyz_list,1) 
+                if size(scal_prop_opt.ref_vec)~=1
+                    error('the number of component vectors must be 1 or the same size as xyz_list')
+                end
+                ref_vec=scal_prop_opt.ref_vec;
+                ref_vec_proc=repmat(ref_vec,[size(xyz_list,1),1]);
+            else
+                ref_vec_proc=scal_prop_opt.ref_vec;
+            end
+            
+            val_list=angle_between_vec(Bvec_list,ref_vec_proc);
+            if isfield(scal_prop_opt,'convert_to_deg') && scal_prop_opt.convert_to_deg
+                val_list=rad2deg(val_list);
+            end
+            
+        case  'b_polar_angle' 
+            % compute the azimuthal angle between the magnetic feild vector and the two reference vectors
+            % consider that reference vector 1,2 set the x and z axis then this will calculate the azimuthal angle
+            [~,Bvec_list]=trap_eval(scal_prop_opt.btrap,xyz_list);
+            plot_zlabel='polar angle of B field';
+            plot_title='Salar Magnetic Potential';
+           
+            if ~isequal(size(scal_prop_opt.ref_vec_pointing,2),size(xyz_list,2)) ||...
+                    ~isequal(size(scal_prop_opt.ref_vec_angle,2),size(xyz_list,2))
+                error('reference vectors the wrong size')   
+            end
+            ref_vec_pointing=scal_prop_opt.ref_vec_pointing;
+            ref_vec_angle=scal_prop_opt.ref_vec_angle;
+            val_list=compute_polar_angle_between_vec(Bvec_list,ref_vec_pointing,ref_vec_angle);
+            if isfield(scal_prop_opt,'unwrap_phase') && scal_prop_opt.unwrap_phase
+                val_list=unwrap(val_list,pi/2);
+            end
+            if isfield(scal_prop_opt,'convert_to_deg') && scal_prop_opt.convert_to_deg
+                val_list=rad2deg(val_list);
+            end
+
+            
+             
         case 'b_comp'
-            expanded_component_mat=false;
             [~,Bvec_list]=trap_eval(scal_prop_opt.btrap,xyz_list);
             if size(scal_prop_opt.component_vec,2)~=size(xyz_list,2)
                 error('wrong number of spatial dimensions')
@@ -24,6 +68,7 @@ switch scal_prop_opt.type
                 component_vec_proc=scal_prop_opt.component_vec;
             end
             %normalize
+            %TODO:i think this can be replaced by vecnorm
             component_vec_proc=bsxfun(@rdivide, component_vec_proc, sqrt(sum(component_vec_proc.^2,2)));
             val_list=dot(Bvec_list,component_vec_proc,2);
             if sum(abs(component_vec)==1)==1%points in a signle direction we can label the component
@@ -38,8 +83,8 @@ switch scal_prop_opt.type
                 direction_str='mix';
             end
             plot_title=sprintf('Magnetic Component in %s',direction_str);
-            plot_zlabel='B (Gauss)';
-        case 'curv_l2norm' %plot the magnitude of the hessian matrix
+            plot_zlabel='B (Tesla)';
+        case 'curv_l2norm' %calculate the magnitude of the hessian matrix
             plot_zlabel='d^2B/dx^2 (Gauss/m^2)';
             plot_title='L2 norm of diagonal emements of the Hessian of the potential';
             hess_list=num_hessian(@(x) trap_eval(scal_prop_opt.btrap,x),xyz_list,scal_prop_opt.hess_delt);

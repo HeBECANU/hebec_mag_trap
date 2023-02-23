@@ -17,7 +17,9 @@ rev_rot_mat=rotationVectorToMatrix(-rot_vec); %reverse rotation vector
 xyz=xyz*rot_mat;
 
 Bout_trapz=xyz*nan; %initalize
-tlim=2*pi*turn;
+tlim=2*pi*turn; %this is an anglular cordinate
+% convert the dt so that it is scaled from a length into an angle
+dt=2*pi*(dt/(2*pi*radius));
 tvec=linspace(tlim(1),tlim(2),ceil(range(tlim)/dt))';
 %define the parametric curve (with t is the parameter) for the curren
 wire_pos=[radius*cos(tvec), radius*sin(tvec), pitch*tvec/(2*pi)]; 
