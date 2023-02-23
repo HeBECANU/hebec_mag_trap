@@ -44,7 +44,7 @@ function anal_out = mag_profile_1d(anal_out,btrap,B_cent)
     x_osc=v_osc./trap_freq;
     anal_out.trap_freq_shift=anal_out.trap_freq_anh1.*x_osc+anal_out.trap_freq_anh2.*(x_osc.^2);
     
-    fprintf('trap freq {%f , %f, %f} \n',trap_freq(1),trap_freq(2),trap_freq(3))
+    fprintf('trap freq {%f , %f, %f} Hz\n',trap_freq(1),trap_freq(2),trap_freq(3))
     fprintf('trap ratio {%f , %f}={y/x,z/x} \n',trap_freq(2)/trap_freq(1),trap_freq(3)/trap_freq(1))
     anal_out.trap_freq=trap_freq;
     

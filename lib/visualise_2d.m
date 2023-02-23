@@ -65,6 +65,7 @@ function visualise_2d(plot_opts)
     
         
         bvec_list=bvec_list*rot_mat;
+        bvec_list = normalize(bvec_list,2);
         bvec_grid=reshape(bvec_list,[size(xyz_grid,1),size(xyz_grid,2),3]);
 
         h=quiver((xyz_grid(:,:,1)-plot_cen(1))*1e3,(xyz_grid(:,:,2)-plot_cen(2))*1e3,bvec_grid(:,:,1),bvec_grid(:,:,2));

@@ -1,6 +1,8 @@
 # hebec_mag_trap
 **[David K. Shin](https://github.com/spicydonkey) [Bryce M. Henson](https://github.com/brycehenson), [Kieran F. Thomas](https://github.com/KF-Thomas)**  
 Magnetostatic field calculator for trapping neutral atoms
+**Status:** This Code is **ready to be used by experts**, **it is still in DEV**. Comparative Unit Testing is implemented for **most** functions. Integration/system testing against analytical trap calculations is **not** implemented.
+
 - Multiple magnetic feild sources
   - arbitrary path numeric solver
   - loop (analytic)
@@ -21,7 +23,15 @@ Magnetostatic field calculator for trapping neutral atoms
   ![mag trap potential](/plots/potential_xz.png "Potential")
   
  ![The sum of the absolute magnitudes of the jacobians](/plots/jacobian_xz.png "Jacobinan Landscape")
- 
+
+## Install
+``` 
+git clone --recurse-submodules -j8 https://github.com/spicydonkey/hebec_mag_trap.git
+```
+then to update 
+```
+git submodule update --remote --merge
+```
 
  # Install
 ``` 
@@ -34,16 +44,18 @@ git submodule foreach --recursive git pull origin master
  
  
 ## To Do
+contributors welcome! Drop me an [email](mailto:bryce.m.henson+github.hebec_mag_trap@gmail.com?subject=I%20would%20Like%20to%20Contribute[github][hebec_mag_trap]) .
+- [ ] Documentation
+- [ ] fix trap depth caluclation to work in 3d
+- [ ] implement flat spiral current source
 - find the principle axes of the trap (dont just assume cartesian)
 - implement other trap geometeries
 - coherent output struct
-- magnetic field source code
-  - flat spiral/ pancake coil 
 - add in multiple potential sources
   - gravity
   - optical
-
-
+- [x] implement current helix
+- [x] build comparative test of sources
 
 ## Contributions
 This project would not have been possible without the many open source tools that it is based on.
