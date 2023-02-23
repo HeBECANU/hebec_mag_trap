@@ -83,7 +83,7 @@ addpath(genpath(this_folder));
 
 hebec_constants
 % Build BiQUIC trap
-btrap=biquic_trap([],trap_config);  % build biquic
+btrap=biquic_trap_coils([],trap_config);  % build biquic
 anal_out=[];
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies
