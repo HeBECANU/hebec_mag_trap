@@ -17,7 +17,7 @@ anal_out.trap_cen.pos=fminsearch(@(x) trap_eval(btrap,x),x0,options);
 
 %calculate the trap center field
 [anal_out.trap_cen.b_mag,anal_out.trap_cen.b_vec]=trap_eval(btrap,anal_out.trap_cen.pos);
- 
+if verbose 
 fprintf('found trap minimum\nB=%2.3fG (%2.3fMHz) \nat {%f,%f,%f} mm\n',...
     1e4*anal_out.trap_cen.b_mag,1e-6*anal_out.trap_cen.b_mag*const.b_freq,...
     anal_out.trap_cen.pos*1e3)
@@ -25,7 +25,7 @@ fprintf('found trap minimum\nB=%2.3fG (%2.3fMHz) \nat {%f,%f,%f} mm\n',...
 if anal_out.trap_cen.b_mag<1e-10 %this checks that the minimum is not too close to a zero crossing
     warning('===============the trap minimum found is close to zero=============')
 end
-
+end
 
 %%% 1D Bmag profile - X,Y,Z line profile
 %X slice

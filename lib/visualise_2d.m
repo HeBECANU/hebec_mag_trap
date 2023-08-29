@@ -52,11 +52,9 @@ function visualise_2d(plot_opts)
     colormap(viridis())
     c = colorbar;
     ylabel(c, scal_res.plot_zlabel)
-<<<<<<< HEAD
     title(scal_res.plot_title)
     xlabel('X (mm)');
-    ylabel('Y (mm)');
-    
+    ylabel('Y (mm)');   
     if plot_opts.vec_plot.do
         hold on
         % grid in unrotated ref frame
@@ -80,7 +78,6 @@ function visualise_2d(plot_opts)
         h=quiver((xyz_grid(:,:,1)-plot_cen(1))*1e3,(xyz_grid(:,:,2)-plot_cen(2))*1e3,bvec_grid(:,:,1),bvec_grid(:,:,2));
         
         hold off
-=======
     if is_rotated % put a ' to indicate the roated cord frame
         xlabel("X' (mm)");
         ylabel("Y' (mm)");
@@ -89,7 +86,7 @@ function visualise_2d(plot_opts)
         xlabel('X (mm)');
         ylabel('Y (mm)');
         title(scal_res.plot_title)
->>>>>>> fb94d8a7023f83e406b2cf3e332982b4585859fc
+    end
     end
     
  
