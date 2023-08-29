@@ -56,10 +56,10 @@ solve_stpt=0;
 
 %% mag trap
 trap_config=[];
-trap_config.dlen_num=1e-4;
+trap_config.dlen_num=1e-3;
 trap_config.v_quad=3.4; %3.4 used in 'normal trap' 14.178 A
-trap_config.v_shunt=0.2;%0.2 used in TO 
-trap_config.dlen_num=1e-4; % the finite linear segments that are used in the helix code
+trap_config.v_shunt=-0.1;%0.2 used in TO 
+trap_config.dlen_num=0.01e-4; % the finite linear segments that are used in the helix code
 
 trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform)
 
@@ -73,16 +73,19 @@ trap_config.Bext=1e-4*[0,0,0];     % external bias field [T] (uniform)
 % {-3.278436,-0.389554,-0.004517} mm
 
 
-% trap_config.v_quad=3.4; %3.4 used in 'normal trap'
-% trap_config.v_shunt=0.0;  
+% trap_config.v_quad=2.5; %3.4 used in 'normal trap'
+% trap_config.v_shunt=0.7;  
+
+%trap_config.v_quad=3.4;%0.7; %2.5;%3.4 used in 'normal trap'
+%trap_config.v_shunt=0.2;%0.85; %4;%0.75 
 
 %ML extreme trap
 % trap_config.v_quad=5.7; %start of evap
 % trap_config.v_shunt=0;
 
 %ML damping trap
-%trap_config.v_quad=0.25; %3.4 used in 'normal trap'
-%trap_config.v_shunt=0.75; 
+%trap_config.v_quad=3.4; %3.4 used in 'normal trap'
+%trap_config.v_shunt=0.0; 
 %------------- END USER Config-------------------------
 
 
@@ -94,7 +97,7 @@ btrap=biquic_trap_loops(btrap,trap_config);  % build biquic
 
 plot2d_opts.do=true;
 plot2d_opts.type='b_scal'; %['b_scal','b_vec_comp','b_angle','hess_l1norm']
-plot2d_opts.cen=[0,0,0] %anal_out.trap_cen.pos;
+plot2d_opts.cen=[0,0,0]; %anal_out.trap_cen.pos;
 
 plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-1,1];
@@ -105,24 +108,24 @@ plot2d_opts.zero_on_cen=false;  %does not do anything
 
 
 
-if plot2d_opts.do
-    plot2d_opts.btrap=btrap;
-    visualise_2d(plot2d_opts)
-    axis equal
-end
+% if plot2d_opts.do
+%     plot2d_opts.btrap=btrap;
+%     visualise_2d(plot2d_opts)
+%     axis equal
+% end
 
-
+disp("---------------------start--------------------")
 %%
 anal_out=[];
 if solve_trapchar>0
     % evaluate trap center, 1D trap potential, trap frequencies
     % NOTE: there are multiple points of potential minimia
-    verbose=0;
+    verbose=1;
     anal_out=trap_characterise(anal_out,btrap,[-4e-3,0,0],solve_trapdepth,verbose);
     fprintf('trap position (x,y,z)=%s\n',sprintf('%.2g,',anal_out.trap_cen.pos))
 end
 
-
+disp("---------------------end of trap characterise--------------------")
 
 
 %% add the nuller sensors
@@ -174,16 +177,17 @@ else
 end
 
 nullr_opt.current_guess=curr_guess;
+%[yellow (1), green (0) , red (2), black (3), (blue, white)]
 % for the TO experiment the main data was taken with both averaged sensors (B,W) at 2.72v
-nullr_opt.set_pt_v=[0.0,0,0,0,20.72];
+nullr_opt.set_pt_v=[-3.54,3.54,-1.27,0,1.8];%[0.0,0,0,0,20.72];%%[-3.54,3.54,0,0,2.3];%[2.8,-2.8,2.8,-2.8,0.72];%[3.54,-3.54,3.54,-3.54,0.72];%
 % apply nuller feedback, the value of the optimzation function is the rms voltage error 
-% [btrap,nuller_status]=feedback_nullr(btrap,nullr_opt);
-% nuller_curr_tmp=nuller_status.currents;
+[btrap,nuller_status]=feedback_nullr(btrap,nullr_opt);
+nuller_curr_tmp=nuller_status.currents;
 
 
+anal_out=trap_characterise(anal_out,btrap,[-4e-3,0,0],solve_trapdepth,verbose);
 
-
-
+%
 
 
 %%
@@ -194,18 +198,18 @@ calc_props.convert_to_deg=1;
 calc_props.xyz_list= anal_out.trap_cen.pos;
 calc_props.btrap=btrap;
 scal_out=compute_scalar_property(calc_props);
-vec_angle=scal_out.val
+vec_angle=scal_out.val;
 
 %%
-calc_props=[];
-calc_props.type='b_polar_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
-calc_props.ref_vec_pointing=[1,0,0];
-calc_props.ref_vec_angle=[0,1,0];
-calc_props.convert_to_deg=1;
-calc_props.xyz_list= anal_out.trap_cen.pos;
-calc_props.btrap=btrap;
-scal_out=compute_scalar_property(calc_props);
-vec_polar_angle=scal_out.val
+% calc_props=[];
+% calc_props.type='b_polar_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
+% calc_props.ref_vec_pointing=[1,0,0];
+% calc_props.ref_vec_angle=[0,1,0];
+% calc_props.convert_to_deg=1;
+% calc_props.xyz_list= anal_out.trap_cen.pos;
+% calc_props.btrap=btrap;
+% scal_out=compute_scalar_property(calc_props);
+% vec_polar_angle=scal_out.val
 
 
 
@@ -217,6 +221,7 @@ plot2d_opts.type='b_scal'; %['b_scal','b_vec_comp','b_angle','hess_l1norm']
 plot2d_opts.hess_delt=1e-7;
 plot2d_opts.cen=anal_out.trap_cen.pos;
 
+
 plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-1,1];
                    [-0.1,0.1]]*20e-3;
@@ -226,10 +231,10 @@ plot2d_opts.zero_on_cen=false;  %does not do anything
 
 
 
-if plot2d_opts.do
-    plot2d_opts.btrap=btrap;
-    visualise_2d(plot2d_opts)
-end
+% if plot2d_opts.do
+%     plot2d_opts.btrap=btrap;
+%     visualise_2d(plot2d_opts)
+% end
 
 %%
 
@@ -287,7 +292,7 @@ plot2d_opts.hess_delt=1e-7;
 plot2d_opts.plot_cen= anal_out.trap_cen.pos;
 plot2d_opts.rot=pi/2 * [0, 0, 0];
 plot2d_opts.range=[[-1,1];
-                   [-1,1]]*0.01*1e-3;
+                   [-1,1]]*2*1e-3;
 plot2d_opts.nsamp=[1,1]*60; 
 plot2d_opts.zero_on_cen=false;   
 plot2d_opts.vec_plot.do=true;
@@ -304,7 +309,7 @@ end
 %% plot the field angle
 plot1d_opts.do=true;
 plot1d_opts.type='b_angle'; %['b_scal','b_vec_comp','b_angle','hess_l1norm','b_angle','b_polar_angle']
-plot1d_opts.ref_vec_pointing=[1,0,0]; %relativeto the x axis
+plot1d_opts.ref_vec=[1,0,0]; %relativeto the x axis
 plot1d_opts.unwrap_phase=true;
 plot1d_opts.convert_to_deg=true;
 
@@ -345,12 +350,12 @@ end
 
 %%
 a=[];
-a.xyz_list=anal_out.trap_cen.pos+[0,10,0]*1e-6
+a.xyz_list=[-3.711805903984313e-03,6.997183069798872e-06,-2.258008604850403e-04];%anal_out.trap_cen.pos;%+[0,10,0]*1e-6
 % a.type='b_polar_angle'
 % a.ref_vec_pointing=[1,0,0];
 % a.ref_vec_angle=[0,1,0];
 a.type='b_angle'
-a.ref_vec=[1,0,0];
+a.ref_vec=[1,0,1]./sqrt(2);%[1,0,0];
 a.convert_to_deg=1;
 
 a.btrap=btrap;
@@ -361,7 +366,7 @@ b.val
 
 %% visualize the vector field
 plot_opts=[]
-plot_opts.cen= anal_out.trap_cen.pos;
+plot_opts.cen= [-3.711805903984313e-03,6.997183069798872e-06,-2.258008604850403e-04];%anal_out.trap_cen.pos;
 plot_opts.rot=pi/2 * [0, 0, 0];
 plot_opts.range=[[-1,1];
                    [-1,1];

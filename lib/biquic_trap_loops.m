@@ -92,6 +92,7 @@ res_baias=71.8e-3;
 fprintf('trap current %2.2f A, power %2.1f W\n',Itrap,Itrap^2*res_trap)
 fprintf('bais current %2.2f A, power %2.1f W\n',Ibias,Ibias^2*res_baias)
 fprintf('Total power %2.1f W\n',Itrap^2*res_trap+Ibias^2*res_baias)
+
 btrap={};
 btrap.power.trap=Itrap^2*res_trap;
 btrap.power.bais=Ibias^2*res_baias;
